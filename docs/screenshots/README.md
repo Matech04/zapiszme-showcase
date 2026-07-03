@@ -1,16 +1,42 @@
 # Screenshots
 
-Drop panel/booking screenshots and short clips here, then reference them from the
-main [README](../../README.md).
+Visuals used in the main [README](../../README.md). Every shot is from the **live
+demo** — the owner panel from a per-visitor demo tenant
+([admin.zapisz.me/login?demo=1](https://admin.zapisz.me/login?demo=1)), the
+booking flow from the client-facing calendar.
 
-Suggested shots (each one click away in the [live demo](../../README.md#try-it-live)):
+## Owner panel (Angular)
 
-- **Calendar / home** — the owner's daily view with appointments.
-- **Booking flow (client)** — service pick → date/time → OTP confirm.
-- **Service form** — the signal-forms editor with price/duration ranges.
-- **Mobile calendar** — the agenda/timeline mobile view.
+**Calendar — day view with the "now" marker**
 
-Tips:
-- A 10–20s GIF or `.mp4` of the booking flow beats any single still.
-- Keep files reasonably sized (long side ~1600px) so the README loads fast.
-- Use consistent framing (same browser chrome / device frame) across shots.
+![Owner calendar](panel-01-calendar.png)
+
+**Services — catalogue with at-a-glance stats**
+
+![Services catalogue](panel-02-services.png)
+
+**Clients — searchable customer base**
+
+![Client base](panel-03-clients.png)
+
+**Mobile — the same calendar, responsive**
+
+<img src="panel-04-mobile-calendar.png" alt="Mobile calendar" width="360">
+
+## Client booking flow (Astro + Svelte)
+
+**1. Pick a service** (with photos & price ranges)
+
+![Service selection](booking-01-services.png)
+
+**2. Choose date & time** (availability heat-map)
+
+![Date & time picker](booking-02-calendar.png)
+
+**3. Summary** (optional inspiration photos)
+
+![Booking summary](booking-03-summary.png)
+
+**4. Confirm via OTP** (slot held while you type)
+
+![OTP confirmation](booking-04-confirm-form.png)
