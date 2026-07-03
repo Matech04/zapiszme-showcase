@@ -150,9 +150,34 @@ smsapi.pl).
 
 ## Screenshots
 
-Screenshots and short clips of the panel and booking flow live in
-[`docs/screenshots/`](docs/screenshots/). For the real thing, the
-[live demo links](#try-it-live) above are one click away.
+### Owner panel (Angular)
+
+The management panel — calendar, service catalogue and client base. Every shot
+below is from the **live per-visitor demo tenant** (note the "Tryb demo" banner);
+it's exactly what you get at
+[admin.zapisz.me/login?demo=1](https://admin.zapisz.me/login?demo=1).
+
+| | |
+|---|---|
+| **Calendar** — day view with the "now" marker | **Services** — catalogue with at-a-glance stats |
+| ![Owner calendar](docs/screenshots/panel-01-calendar.png) | ![Services catalogue](docs/screenshots/panel-02-services.png) |
+| **Clients** — searchable customer base | **Mobile** — the same calendar, responsive |
+| ![Client base](docs/screenshots/panel-03-clients.png) | <img src="docs/screenshots/panel-04-mobile-calendar.png" alt="Mobile calendar" width="320"> |
+
+### Client booking flow (Astro + Svelte)
+
+The client-facing booking flow — service pick → date & time → summary → OTP
+confirmation:
+
+| | |
+|---|---|
+| **1. Pick a service** (with photos & price ranges) | **2. Choose date & time** (availability heat-map) |
+| ![Service selection](docs/screenshots/booking-01-services.png) | ![Date & time picker](docs/screenshots/booking-02-calendar.png) |
+| **3. Summary** (optional inspiration photos) | **4. Confirm via OTP** (slot held while you type) |
+| ![Booking summary](docs/screenshots/booking-03-summary.png) | ![OTP confirmation](docs/screenshots/booking-04-confirm-form.png) |
+
+More shots (and the owner panel) live in [`docs/screenshots/`](docs/screenshots/).
+For the real thing, the [live demo links](#try-it-live) above are one click away.
 
 ---
 
