@@ -55,7 +55,7 @@ services:
       - net.ipv6.conf.all.disable_ipv6=1
       - net.ipv6.conf.default.disable_ipv6=1
     # Drugi env_file — wartości z .env.local NADPISUJĄ te z .env (compose merge order).
-    # Patrz workflow `fetch-local-env.yml` co tam siedzi.
+    # Wartości pochodzą z `.env.local` — patrz docs/SECRETS-AND-ENVIRONMENTS.md.
     env_file:
       - path: .env.local
         required: true

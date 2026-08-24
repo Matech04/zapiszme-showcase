@@ -53,7 +53,7 @@ import { DraftService, OnboardingWizardStore } from '../onboarding-wizard.store'
             >
               <!--
                 p-checkbox, nie natywny input: natywne kontrolki renderują się stylem OS (tu:
-                niebieskie) i odstają od amber — CLAUDE.md nazywa to nawracającą regresją.
+                niebieskie) i odstają od amber — to nawracająca regresja w tym projekcie.
                 Etykieta przez atrybut for, a nie owinięcie inputa, zgodnie z wzorcem z tenants-page:
                 owijający label podwójnie przełączałby p-checkbox.
               -->

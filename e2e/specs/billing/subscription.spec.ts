@@ -3,7 +3,7 @@ import { expect, test } from '../../fixtures/admin-session.fixture';
 /**
  * Sprint M — subscription refactor + founding member + seats. TC-S016..S020.
  *
- * Pricing model (per CLAUDE.md / Subscription.cs):
+ * Pricing model (per Subscription.cs):
  *   - 1 seat base: 79 zł (Founding: 49 zł)
  *   - każdy kolejny: +35 zł, +150 SMS
  *   - 200 SMS w cenie dla 1 seata

@@ -8,6 +8,6 @@ export const environment = {
   apiBaseUrl: 'https://api.localhost',
   bookingBaseUrl: 'https://localhost',
   // Cloudflare Turnstile public TEST site key — zawsze pass, ale tylko z origin localhost.
-  // Dopasowane do Turnstile__SiteKey ustawianego w fetch-local-env.yml.
+  // Dopasowane do Turnstile__SiteKey ustawianego w `.env.local`.
   turnstileSiteKey: '1x00000000000000000000AA',
 };

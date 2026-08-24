@@ -1,16 +1,12 @@
 name: CI
 
 on:
-  # Wywoływany przez deploy.yml jako job-zależność (push na production przechodzi tylko tutaj).
-  workflow_call:
   pull_request:
   push:
     branches:
       - main
       - master
       - security
-      # UWAGA: brak `production` — deploy.yml już woła ci.yml przez workflow_call,
-      # więc dodanie tutaj duplikowałoby run.
 
 jobs:
   backend:

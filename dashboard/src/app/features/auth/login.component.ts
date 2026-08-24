@@ -109,7 +109,7 @@ interface LoginFormModel {
 
         <!--
           p-checkbox zamiast natywnego inputa — natywny renderował się stylem OS (niebieski)
-          i odstawał od amber; CLAUDE.md zakazuje natywnych kontrolek wprost.
+          i odstawał od amber; konwencje projektu zakazują natywnych kontrolek wprost.
           ngModelOptions standalone, bo to pole leży w formularzu, ale NIE należy do modelu
           signal-form (rememberMe czytamy wprost z loginModel) — bez tego Angular wymaga name.
         -->

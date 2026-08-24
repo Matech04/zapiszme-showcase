@@ -2,7 +2,7 @@
 #
 # Quick start (raz):
 #   age-keygen -o ~/.config/age/key.txt      # generuje pair (private trzymaj się siebie)
-#   make pull-env                            # ciągnie .env.local z GitHuba (encrypted via age)
+#   cp .env.local.example .env.local         # uzupełnij wartości (patrz docs/SECRETS-AND-ENVIRONMENTS.md)
 #   make prod-local-up                       # builduje + odpala cały stack
 #   open http://admin.localhost              # admin panel
 #   open http://mail.localhost               # Mailpit (logi maili)
@@ -29,63 +29,20 @@ ENV_FILE := --env-file .env.local
 
 DOCKER_COMPOSE := docker compose $(ENV_FILE) $(COMPOSE_FILES)
 
-AGE_KEY ?= $(HOME)/.config/age/key.txt
-AGE_PUB := $(shell test -f $(AGE_KEY) && grep -m1 'public key:' $(AGE_KEY) | awk '{print $$NF}')
-
 # `saas-network` jest external: true w base compose. Lokalnie musimy ją utworzyć ręcznie,
 # żeby compose nie crashował na braku sieci.
 .PHONY: _ensure-network
 _ensure-network:
 	@docker network inspect saas-network >/dev/null 2>&1 || docker network create saas-network
 
-.PHONY: pull-env
-pull-env: ## Wystartuj workflow fetch-local-env, pobierz artifact, odszyfruj do .env.local
-	@if [ -z "$(AGE_PUB)" ]; then \
-		echo "ERROR: nie znaleziono age public key w $(AGE_KEY)."; \
-		echo "       wygeneruj: age-keygen -o $(AGE_KEY)"; \
-		exit 1; \
-	fi
-	@command -v gh >/dev/null || { echo "ERROR: gh CLI niezainstalowane — https://cli.github.com"; exit 1; }
-	@command -v age >/dev/null || { echo "ERROR: age niezainstalowany — sudo apt install age"; exit 1; }
-	@# `set -euo pipefail` jest KRYTYCZNE — bez tego błędy w środku łańcucha (np. age fail
-	@# na nieistniejącym pliku) leciały niezauważone i .env.local zostawał pusty.
-	@# Łapanie RUN_ID po nazwie wartości RUN_NAME (`--display-title`) chroni przed race
-	@# condition z poprzednim runem — `gh run list --limit=1` zwracał ostatni *ukończony*
-	@# zamiast tego co przed chwilą wystartowaliśmy.
-	@set -euo pipefail; \
-		RUN_NAME="local-env-$$(date +%s)-$$RANDOM"; \
-		echo "→ uruchamiam workflow z pubkey: $(AGE_PUB) (run-name: $$RUN_NAME)"; \
-		gh workflow run fetch-local-env \
-			--field age_public_key="$(AGE_PUB)" \
-			--field run_name="$$RUN_NAME"; \
-		echo "→ szukam run-id po nazwie..."; \
-		RUN_ID=""; \
-		for i in 1 2 3 4 5 6 7 8 9 10; do \
-			sleep 3; \
-			RUN_ID=$$(gh run list --workflow=fetch-local-env --limit=10 \
-				--json databaseId,displayTitle \
-				-q ".[] | select(.displayTitle==\"$$RUN_NAME\") | .databaseId" | head -1); \
-			[ -n "$$RUN_ID" ] && break; \
-			echo "  (próba $$i/10 — run jeszcze nie widoczny)"; \
-		done; \
-		if [ -z "$$RUN_ID" ]; then \
-			echo "ERROR: nie znalazłem nowego run-id po 30s — sprawdź 'gh run list --workflow=fetch-local-env'"; \
-			exit 1; \
-		fi; \
-		echo "→ run id: $$RUN_ID — czekam na zakończenie..."; \
-		gh run watch "$$RUN_ID" --exit-status; \
-		DLDIR=$$(mktemp -d); \
-		trap "rm -rf $$DLDIR" EXIT; \
-		gh run download "$$RUN_ID" -n env-local-encrypted -D "$$DLDIR"; \
-		test -s "$$DLDIR/env.local.age" || { echo "ERROR: artifact pusty lub brak env.local.age"; exit 1; }; \
-		age --decrypt --identity $(AGE_KEY) -o .env.local "$$DLDIR/env.local.age"; \
-		test -s .env.local || { echo "ERROR: .env.local po decrypt jest pusty — sprawdź klucz age"; exit 1; }; \
-		chmod 600 .env.local; \
-		echo "✓ .env.local gotowy ($$(wc -l < .env.local) linii)"
+# UWAGA (snapshot pokazowy): target `pull-env`, który pobierał zaszyfrowany `.env.local`
+# z prywatnego repo (GitHub Actions + `age`), nie jest częścią tego snapshotu — razem z
+# workflowami deploymentu. Opis samego podejścia: docs/SECRETS-AND-ENVIRONMENTS.md.
+# Aby uruchomić stack lokalnie, utwórz `.env.local` ręcznie.
 
 .PHONY: prod-local-up
 prod-local-up: _ensure-network ## Odpal cały stack (build + start)
-	@test -f .env.local || { echo "ERROR: brak .env.local. uruchom: make pull-env"; exit 1; }
+	@test -f .env.local || { echo "ERROR: brak .env.local — utwórz go (patrz docs/SECRETS-AND-ENVIRONMENTS.md)"; exit 1; }
 	$(DOCKER_COMPOSE) up -d --build
 	@echo
 	@echo "✓ stack wstał. Otwórz:"

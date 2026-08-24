@@ -5,7 +5,7 @@ namespace App.Domain.Aggregates.PromoCodeAggregate;
 
 /// <summary>
 /// Globalny kod promocyjny — widoczny dla wszystkich tenantów. NIE implementuje
-/// <c>ITenantEntity</c> i NIE ma query filtra (świadomy wyjątek od reguły CLAUDE.md).
+/// <c>ITenantEntity</c> i NIE ma query filtra (świadomy wyjątek od reguły izolacji tenantów).
 /// Każda zmiana warunków kodu nie wpływa na istniejące <c>PromoCodeRedemption</c>
 /// (które trzymają snapshot warunków na moment redempcji).
 /// </summary>

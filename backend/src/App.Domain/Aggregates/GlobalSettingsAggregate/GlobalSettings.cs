@@ -4,7 +4,7 @@ namespace App.Domain.Aggregates.GlobalSettingsAggregate;
 
 /// <summary>
 /// Globalne ustawienia platformy — encja singleton (dokładnie jeden wiersz o <see cref="SingletonId"/>).
-/// NIE implementuje <c>ITenantEntity</c> i NIE ma query filtra (świadomy wyjątek od reguły CLAUDE.md,
+/// NIE implementuje <c>ITenantEntity</c> i NIE ma query filtra (świadomy wyjątek od reguły izolacji tenantów,
 /// jak <c>PromoCode</c> / <c>ImpersonationSession</c>).
 ///
 /// Nośnik globalnego trybu serwisowego (kill-switch platformy): gdy <see cref="MaintenanceEnabled"/>

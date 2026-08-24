@@ -5,7 +5,7 @@ namespace App.Domain.Aggregates.ImpersonationAggregate;
 /// <summary>
 /// Sesja wsparcia ("support impersonation") — platformowy admin uzyskuje czasowy,
 /// audytowany dostęp do tenanta klienta. NIE implementuje <c>ITenantEntity</c> i NIE
-/// ma query filtra (świadomy wyjątek od reguły CLAUDE.md, jak <c>PromoCode</c>): to dane
+/// ma query filtra (świadomy wyjątek od reguły izolacji tenantów, jak <c>PromoCode</c>): to dane
 /// rozliczalności dostępu supportu, nie dane salonu.
 ///
 /// Encja jest źródłem prawdy dla całego mechanizmu — middleware sprawdza ją przy każdym

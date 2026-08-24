@@ -41,7 +41,7 @@ build/
 .env.development.local
 .env.test.local
 .env.production.local
-# Zaszyfrowane artefakty z fetch-local-env workflow (Makefile: pull-env)
+# Zaszyfrowane artefakty z env (age)
 *.age
 # Root CA Caddy wyciągnięty z kontenera local-prod (do trust store hosta)
 caddy-local-root.crt
@@ -64,9 +64,6 @@ test-results/
 *.sql
 *.sql.gz
 
-# Katalogi narzędzi / efemeryczne worktree
-.playwright-mcp/
-.claude/worktrees/
 
 # Robocze screenshoty i materiały marketingowe (poza buildem aplikacji)
 *-check.png

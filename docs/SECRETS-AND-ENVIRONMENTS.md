@@ -1,5 +1,9 @@
 # Sekrety i środowiska (bez Azure Key Vault)
 
+> **Uwaga:** to repozytorium jest snapshotem pokazowym. Workflowy deploymentu
+> (`deploy.yml`, `rollback.yml`, `fetch-local-env.yml`) nie są jego częścią — poniższy
+> opis dokumentuje, jak działa środowisko produkcyjne, ale samych plików tu nie znajdziesz.
+
 Aplikacja opiera się na **wbudowanym łańcuchu konfiguracji ASP.NET Core**: `appsettings.json` → `appsettings.{Environment}.json` → **zmienne środowiskowe** (najwyższy priorytet) → opcjonalnie **dotnet user-secrets** (tylko lokalnie, profil `Development`).
 
 Sekretów **nie commitujesz** do git (hasła, connection stringi z hasłem, klucze ACS). W repozytorium zostają wyłącznie **szablony** i wartości niepoufne (np. publiczne ClientId API po stronie walidacji JWT).

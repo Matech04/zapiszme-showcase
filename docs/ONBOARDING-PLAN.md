@@ -298,5 +298,5 @@ obsługa sesji z `TenantId == null`, banner `zapisz.onboarding.pending`.
 Podpięcie `SetupChecklistComponent` i `CALENDAR_TOUR`, ujednolicenie empty-state'ów.
 
 PR 1 i 3 **muszą wyjść na produkcję razem** — inaczej stary formularz rejestracji strzela do nowego
-kontraktu. To dokładnie ta pułapka z `CLAUDE.md`: zmiana kontraktu API bez przebudowy klienta
+kontraktu. To dokładnie ta pułapka: zmiana kontraktu API bez przebudowy klienta
 kończy się błędem dopiero w runtime.

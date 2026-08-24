@@ -104,7 +104,7 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
       .HasQueryFilter(o => o.TenantId == _currentTenantService.TenantId);
 
     // PromoCodeRedemption — tenant-scoped (świadoma decyzja: filter włączony).
-    // UWAGA: PromoCode nie ma query filtra — jest GLOBAL (świadomy wyjątek od reguły CLAUDE.md;
+    // UWAGA: PromoCode nie ma query filtra — jest GLOBAL (świadomy wyjątek od reguły izolacji tenantów;
     // każdy tenant ma dostęp do tych samych kodów, lookup po Code bez kontekstu tenant'a).
     modelBuilder.Entity<PromoCodeRedemption>()
       .HasQueryFilter(r => r.TenantId == _currentTenantService.TenantId);
@@ -117,7 +117,7 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
       .HasQueryFilter(t => t.TenantId == _currentTenantService.TenantId);
 
     // ImpersonationSession — encja PLATFORMOWA (support impersonation), BEZ query filtra
-    // (świadomy wyjątek od reguły CLAUDE.md, jak PromoCode): to dziennik dostępu supportu,
+    // (świadomy wyjątek od reguły izolacji tenantów, jak PromoCode): to dziennik dostępu supportu,
     // nie dane tenanta. Czytana/zapisywana ponad kontekstem tenanta.
   }
 

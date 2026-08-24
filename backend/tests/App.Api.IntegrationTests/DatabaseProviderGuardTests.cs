@@ -11,7 +11,7 @@ namespace App.Api.IntegrationTests;
 /// Testcontainers, ale aplikacja i tak używała InMemory — `Program.cs` czytał `Testing:UsePostgres`
 /// przed `builder.Build()`, a `ConfigureAppConfiguration` fabryki wykonywało się dopiero w trakcie.
 /// Awaria była CICHA: kontener wstawał, suita świeciła na zielono, krok „PostgreSQL" w CI raportował
-/// sukces — a prawdziwej bazy nie dotykał nikt. To wprost przeczy zasadzie z CLAUDE.md („Don't mock
+/// sukces — a prawdziwej bazy nie dotykał nikt. To wprost przeczy zasadzie projektu („Don't mock
 /// the database in App.Api.IntegrationTests"), która powstała po incydencie, gdy zamockowane testy
 /// przeszły, a realna migracja położyła produkcję.
 ///
