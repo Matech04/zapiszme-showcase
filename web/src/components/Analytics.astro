@@ -1,0 +1,16 @@
+---
+// Umami analytics — ładowany tylko w produkcyjnym buildzie,
+// żeby ruch z dev/localhost nie zaśmiecał statystyk.
+const enabled = import.meta.env.PROD;
+---
+
+{
+  enabled && (
+    <script
+      is:inline
+      defer
+      src="https://cloud.umami.is/script.js"
+      data-website-id="1fc98834-89e3-4a48-929d-5b58df2a3403"
+    />
+  )
+}

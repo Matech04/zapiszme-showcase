@@ -1,0 +1,141 @@
+name: CI
+
+on:
+  # Wywoływany przez deploy.yml jako job-zależność (push na production przechodzi tylko tutaj).
+  workflow_call:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+      - security
+      # UWAGA: brak `production` — deploy.yml już woła ci.yml przez workflow_call,
+      # więc dodanie tutaj duplikowałoby run.
+
+jobs:
+  backend:
+    name: Backend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          # Pinned przez global.json — SDK 10.0.203 ma regresję w MTP property-scan
+          # (nie expand-uje implicit globów `**/*.cs`, `**/*.razor`, `**/*.cshtml`).
+          # Trzymamy się 10.0.1xx do czasu fix-a upstream.
+          global-json-file: global.json
+
+      - name: Restore backend
+        run: dotnet restore backend/backend.slnx
+
+      # Pełny build PRZED test-em. Test --no-restore robi częściowy property-scan,
+      # który pod CI rzuca MSB3552 dla implicit globów (`**/*.resx`, `**/*.cs` itp.) —
+      # nie expand-uje wildcard-ów. Pełny dotnet build evaluates MSBuild items prawidłowo
+      # i materializuje binarki, więc kolejny `--no-build` test action już ich nie odpyta.
+      - name: Build backend
+        run: dotnet build backend/backend.slnx --no-restore --configuration Debug
+
+      - name: Test domain
+        run: dotnet test --project backend/tests/App.Domain.UnitTests/App.Domain.UnitTests.csproj --no-build --configuration Debug
+
+      - name: Test application
+        run: dotnet test --project backend/tests/App.Application.UnitTests/App.Application.UnitTests.csproj --no-build --configuration Debug
+
+      - name: Test API integration (InMemory)
+        run: dotnet test --project backend/tests/App.Api.IntegrationTests/App.Api.IntegrationTests.csproj --no-build --configuration Debug
+
+      - name: Test API integration (PostgreSQL)
+        env:
+          INTEGRATION_DB_PROVIDER: Postgres
+        run: dotnet test --project backend/tests/App.Api.IntegrationTests/App.Api.IntegrationTests.csproj --no-build --configuration Debug
+
+  dashboard:
+    name: Dashboard
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: dashboard
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: dashboard/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Test dashboard
+        run: npx vitest run
+
+      - name: Build dashboard
+        run: npm run build -- --configuration=docker
+
+  web:
+    name: Web
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type-check web (astro check + svelte-check)
+        run: npm run check
+
+      - name: Test web
+        run: npm test
+
+      - name: Build web
+        run: npm run build
+
+  compose:
+    name: Compose Config
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate compose files
+        run: |
+          docker compose -f docker-compose.prod.yml config >/tmp/compose-prod.yml
+          docker compose -f docker-compose.monitoring.yml config >/tmp/compose-monitoring.yml
+
+  secrets:
+    name: Secret Scan
+    runs-on: ubuntu-latest
+    steps:
+      # fetch-depth: 0 — gitleaks-action diff-uje zakres commitów eventu (PR base..head /
+      # push before..after), więc skanuje WYŁĄCZNIE nowe commity, nie całą historię.
+      # Historyczne, znane wycieki są dodatkowo wyciszone przez .gitleaksignore w korzeniu repo.
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Gitleaks (skan sekretów)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Repo osobiste (nie organizacja) → licencja gitleaks NIE jest wymagana.
+          # Nie wgrywaj raportu jako artefakt — SARIF zawiera surowe trafienia (nie re-eksponuj sekretu w CI).
+          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: "false"
+          GITLEAKS_ENABLE_SUMMARY: "true"

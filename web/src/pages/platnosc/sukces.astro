@@ -1,0 +1,75 @@
+---
+export const prerender = true;
+
+import "../../styles/global.css";
+import ThemeInit from "../../components/ThemeInit.astro";
+---
+
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Płatność zadatku — Zapisz.me</title>
+    <ThemeInit />
+  </head>
+  <body class="min-h-screen bg-[var(--bg)] text-[var(--fg)] flex items-center justify-center p-6">
+    <main class="w-full max-w-md text-center space-y-6">
+      <div id="state-pending" class="space-y-4">
+        <div class="mx-auto w-14 h-14 rounded-full border-4 border-[var(--brand)] border-t-transparent animate-spin"></div>
+        <h1 class="text-xl font-black">Potwierdzamy płatność…</h1>
+        <p class="text-sm opacity-70">To zajmie chwilę. Nie zamykaj tej strony.</p>
+      </div>
+
+      <div id="state-paid" class="hidden space-y-4">
+        <div class="mx-auto w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-3xl">✓</div>
+        <h1 class="text-2xl font-black">Zadatek opłacony</h1>
+        <p class="text-sm opacity-80">Dziękujemy! Twoja wizyta jest potwierdzona. Możesz zamknąć tę stronę.</p>
+      </div>
+
+      <div id="state-unknown" class="hidden space-y-4">
+        <div class="mx-auto w-16 h-16 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center text-3xl">⏳</div>
+        <h1 class="text-xl font-black">Płatność w trakcie</h1>
+        <p class="text-sm opacity-80">
+          Jeśli zapłaciłaś/eś, potwierdzenie pojawi się za chwilę. Możesz odświeżyć stronę
+          lub skontaktować się z salonem.
+        </p>
+      </div>
+    </main>
+
+    <script>
+      // Baza API z runtime hosta: na rezerwacja.<domena> (white-label) → api.<domena> (same-origin,
+      // bez CORS/ITP), inaczej PUBLIC_API_BASE_URL. Współdzielone z resztą bookingu.
+      import { getBookingApiBase } from "../../lib/booking-api-browser";
+
+      const apiBaseUrl = getBookingApiBase();
+      const params = new URLSearchParams(location.search);
+      const appointmentId = params.get("wizyta");
+      const show = (id: string) => {
+        for (const s of ["state-pending", "state-paid", "state-unknown"]) {
+          document.getElementById(s)?.classList.toggle("hidden", s !== id);
+        }
+      };
+
+      async function poll(attempt = 0) {
+        if (!appointmentId || !apiBaseUrl) return show("state-unknown");
+        try {
+          const res = await fetch(
+            `${apiBaseUrl}/api/payments/status/${encodeURIComponent(appointmentId)}`,
+          );
+          if (res.ok) {
+            const data = await res.json();
+            if (data.paymentStatus === "Paid") return show("state-paid");
+          }
+        } catch {
+          /* spróbujemy ponownie */
+        }
+        if (attempt >= 20) return show("state-unknown"); // ~60s (20 × 3s)
+        setTimeout(() => poll(attempt + 1), 3000);
+      }
+
+      poll();
+    </script>
+  </body>
+</html>

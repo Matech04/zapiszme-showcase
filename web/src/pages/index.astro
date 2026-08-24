@@ -1,0 +1,1076 @@
+---
+export const prerender = true;
+
+import { Image } from "astro:assets";
+import "../styles/global.css";
+import Analytics from "../components/Analytics.astro";
+import ThemeInit from "../components/ThemeInit.astro";
+import ThemeToggle from "../components/ThemeToggle.astro";
+import PhoneFrame from "../components/PhoneFrame.astro";
+import panelTydzien from "../assets/screens/panel-kalendarz-tydzien.png";
+import panelTydzienDark from "../assets/screens/panel-kalendarz-tydzien-dark.png";
+import panelMiesiac from "../assets/screens/panel-kalendarz-miesiac.png";
+import panelKlientka from "../assets/screens/panel-klientka.png";
+import panelUstawienia from "../assets/screens/panel-ustawienia.png";
+
+// Osadzone, żywe demo rezerwacji (iframe do /demo-kalendarz w trybie embed),
+// przemalowane pod paletę marki (fiolet na kremie).
+const demoEmbedUrl =
+  "/demo-kalendarz?embed=1&layout=wizard&date=strip&color=9333ea&bg=f8f3ec&surface=ffffff&price=0d9488";
+
+const dashboardUrl =
+  import.meta.env.PUBLIC_DASHBOARD_URL ?? "https://admin.zapisz.me";
+const registerUrl = `${dashboardUrl}/register`;
+const loginUrl = `${dashboardUrl}/login`;
+// Deep-link wpadający od razu w demo panelu (login.component obsługuje ?demo=1).
+const panelDemoUrl = `${dashboardUrl}/login?demo=1`;
+
+const navItems = [
+  { href: "#problem", label: "Po co" },
+  { href: "#aplikacja", label: "Aplikacja" },
+  { href: "#jak-dziala", label: "Jak działa" },
+  { href: "#cennik", label: "Cennik" },
+  { href: "#faq", label: "FAQ" },
+];
+
+// 3 najmocniejsze bóle (wcześniej 4 — mniej znaczy więcej).
+const painPoints = [
+  {
+    emoji: "📩",
+    text: "22:00, a Ty wciąż odpisujesz na „będzie wolne w sobotę?” zamiast odpocząć.",
+  },
+  {
+    emoji: "📅",
+    text: "Dwie klientki na ten sam termin. Pamiętasz o tym tylko Ty — do czasu.",
+  },
+  {
+    emoji: "⏰",
+    text: "Ktoś nie przyszedł. Stracona godzina, której nikt Ci nie odda.",
+  },
+];
+
+const steps = [
+  {
+    number: "01",
+    title: "Ustawiasz usługi i grafik",
+    description: "Zabiegi, ceny i godziny pracy. Kilka minut — pomogę, jeśli utkniesz.",
+  },
+  {
+    number: "02",
+    title: "Udostępniasz swój link",
+    description: "Wklejasz zapisz.me/twoja-nazwa w bio. Klientki rezerwują 24/7.",
+  },
+  {
+    number: "03",
+    title: "Pracujesz spokojniej",
+    description: "Wizyty same wpadają do kalendarza, klientki dostają przypomnienia.",
+  },
+];
+
+// Galeria panelu właścicielki — realne zrzuty z aplikacji, po jednej korzyści na kadr.
+const panelShots = [
+  {
+    src: panelTydzien,
+    dark: panelTydzienDark,
+    alt: "Panel zapisz.me — widok tygodnia z wizytami i godzinami pracy na jednej osi",
+    benefit: "Cały tydzień na jednym ekranie — wizyty, przerwy i wolne godziny razem.",
+  },
+  {
+    src: panelKlientka,
+    dark: null,
+    alt: "Profil klientki w panelu zapisz.me — dane, historia wizyt i statystyki",
+    benefit: "Profil klientki: historia wizyt i no-show od razu widoczne.",
+  },
+  {
+    src: panelMiesiac,
+    dark: null,
+    alt: "Widok miesięczny kalendarza w panelu zapisz.me",
+    benefit: "Rzut oka na cały miesiąc — wiesz, kiedy masz wolne.",
+  },
+  {
+    src: panelUstawienia,
+    dark: null,
+    alt: "Ustawienia salonu w panelu zapisz.me — dane, wygląd, zasady rezerwacji",
+    benefit: "Wszystko w ustawieniach: marka, zasady rezerwacji, powiadomienia.",
+  },
+];
+
+const audiences = [
+  "Stylistki paznokci (manicure, pedicure)",
+  "Stylistki brwi i rzęs",
+  "Makijażystki",
+  "Kosmetolożki pracujące solo",
+  "Osoby przyjmujące w domu lub w wynajętym fotelu",
+  "Każda, która dziś umawia klientki przez DM-y",
+];
+
+const pricingIncluded = [
+  "Twoja własna strona rezerwacji",
+  "Nielimitowane wizyty i klientki",
+  "Kalendarz, grafik, urlopy i wypełnianie luk",
+  "Przypomnienia SMS (500 gratis), e-mail i push bez limitu",
+  "Bez prowizji od wizyt",
+];
+
+const pricingExamples = [
+  { who: "Pracujesz sama", price: "99 zł", note: "1 stanowisko" },
+  { who: "3 osoby", price: "177 zł", note: "99 + 2 × 39 zł" },
+  { who: "5 osób", price: "255 zł", note: "99 + 4 × 39 zł" },
+];
+
+const faqItems = [
+  {
+    q: "Czy muszę podawać kartę na start?",
+    a: "Nie. Przez 30 dni masz pełną wersję za darmo, bez podpinania karty. Kartę podajesz dopiero, gdy zdecydujesz się zostać.",
+  },
+  {
+    q: "Jak klientka rezerwuje bez konta?",
+    a: "Wchodzi w Twój link, wybiera usługę i termin, a wizytę potwierdza kodem z SMS-a. Żadnych haseł ani zakładania konta.",
+  },
+  {
+    q: "Czy mogę zrezygnować w każdej chwili?",
+    a: "Tak. Płacisz miesiąc do miesiąca, bez umów na czas określony. Rezygnujesz, kiedy chcesz.",
+  },
+  {
+    q: "Czy pobieracie prowizję od wizyt?",
+    a: "Nie pobieramy ani grosza prowizji. Płacisz stały abonament za tyle stanowisk, ile przyjmuje gabinet — reszta jest Twoja.",
+  },
+  {
+    q: "Mogę mieć własną domenę i adres bez „zapisz.me”?",
+    a: "Tak, w planie z własną marką (od 249 zł/mies.) dostajesz własną domenę i adres bez „zapisz.me”.",
+  },
+  {
+    q: "Ile kosztują SMS-y?",
+    a: "Na start 500 SMS gratis. Potem dokupujesz w pakietach (od 49 zł), płacisz raz — bez rosnącego abonamentu. E-mail i powiadomienia w aplikacji są bez limitu.",
+  },
+];
+---
+
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <meta
+      name="description"
+      content="zapisz.me — Twoja własna strona rezerwacji dla gabinetu kosmetycznego solo. Klientki rezerwują u Ciebie, nie w katalogu konkurencji. 30 dni za darmo, bez karty."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://zapisz.me/" />
+    <meta property="og:title" content="zapisz.me — Twoja własna strona rezerwacji dla gabinetu solo" />
+    <meta property="og:description" content="Klientki rezerwują u Ciebie, nie w katalogu konkurencji. Bez prowizji, bez zakładania konta. 30 dni za darmo, bez karty." />
+    <meta property="og:image" content="https://zapisz.me/screens/dashboard.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <title>zapisz.me — Twoja własna strona rezerwacji dla gabinetu solo</title>
+    <Analytics />
+    <ThemeInit />
+  </head>
+  <body class="min-h-dvh bg-[#f8f3ec] dark:bg-[#181427] text-slate-950 dark:text-slate-100 antialiased">
+    <div class="pointer-events-none fixed inset-0 overflow-hidden">
+      <div
+        class="absolute -left-24 top-20 h-72 w-72 rounded-full bg-amber-200/50 dark:bg-brand-500/20 blur-3xl"
+      >
+      </div>
+      <div
+        class="absolute right-0 top-0 h-96 w-96 rounded-full bg-slate-900/10 blur-3xl"
+      >
+      </div>
+      <div
+        class="absolute bottom-0 left-1/3 h-80 w-80 rounded-full bg-orange-200/40 dark:bg-brand-600/25 blur-3xl"
+      >
+      </div>
+    </div>
+
+    <div
+      class="relative mx-auto flex min-h-dvh max-w-7xl flex-col px-5 py-5 sm:px-8 lg:px-10"
+    >
+      <header
+        class="relative z-50 flex items-center justify-between rounded-full border border-white/70 dark:border-white/10 bg-white/70 dark:bg-white/5 px-5 py-3 shadow-sm backdrop-blur"
+      >
+        <a href="/" class="flex items-center gap-3" aria-label="zapisz.me">
+          <img src="/logo-light.svg" alt="" class="size-9 dark:hidden" />
+          <img src="/favicon.svg" alt="" class="hidden size-9 dark:block" />
+          <span class="text-lg font-black tracking-tight text-slate-950 dark:text-slate-100"
+            >zapisz.me</span
+          >
+        </a>
+        <nav
+          class="hidden items-center gap-6 text-sm font-medium text-slate-700 dark:text-slate-300 lg:flex"
+          aria-label="Główna nawigacja"
+        >
+          {
+            navItems.map((item) => (
+              <a class="transition hover:text-slate-950 dark:hover:text-white" href={item.href}>
+                {item.label}
+              </a>
+            ))
+          }
+        </nav>
+        <div class="flex items-center gap-1 sm:gap-2">
+          <ThemeToggle />
+          <a
+            href={loginUrl}
+            class="hidden rounded-full px-3 py-2.5 text-sm font-bold text-slate-700 dark:text-slate-200 transition hover:text-slate-950 dark:hover:text-white lg:inline-flex"
+          >
+            Zaloguj się
+          </a>
+          <a
+            href={registerUrl}
+            class="hidden rounded-full bg-slate-950 dark:bg-brand-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-800 dark:hover:bg-brand-500 lg:inline-flex"
+          >
+            Załóż konto
+          </a>
+          <button
+            id="mobile-menu-toggle"
+            type="button"
+            aria-label="Otwórz menu"
+            aria-controls="mobile-menu"
+            aria-expanded="false"
+            class="grid size-9 place-items-center rounded-full border border-slate-200 bg-white/70 text-slate-600 transition hover:text-slate-950 dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:text-white lg:hidden"
+          >
+            <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+              <path d="M4 7h16M4 12h16M4 17h16" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Mobilne menu — nakładka wysuwana z animacją, nie wypycha strony. -->
+        <div
+          id="mobile-menu"
+          inert
+          class="pointer-events-none absolute inset-x-0 top-full z-50 mt-2 origin-top -translate-y-2 rounded-3xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-3 opacity-0 shadow-2xl shadow-slate-900/20 transition-[opacity,transform] duration-200 ease-out lg:hidden"
+        >
+          <nav class="flex flex-col" aria-label="Nawigacja mobilna">
+          {
+            navItems.map((item) => (
+              <a
+                class="rounded-2xl px-4 py-3 text-sm font-semibold text-slate-700 dark:text-slate-200 transition hover:bg-slate-100 dark:hover:bg-white/5"
+                href={item.href}
+                data-mobile-nav-link
+              >
+                {item.label}
+              </a>
+            ))
+          }
+        </nav>
+        <div class="mt-2 grid gap-2 border-t border-slate-200/70 dark:border-white/10 pt-3">
+          <a
+            href={loginUrl}
+            class="rounded-full border border-slate-300 dark:border-white/15 px-5 py-3 text-center text-sm font-bold text-slate-800 dark:text-slate-100 transition hover:bg-slate-100 dark:hover:bg-white/5"
+          >
+            Zaloguj się
+          </a>
+          <a
+            href={registerUrl}
+            class="rounded-full bg-slate-950 dark:bg-brand-600 px-5 py-3 text-center text-sm font-bold text-white shadow-sm transition hover:bg-slate-800 dark:hover:bg-brand-500"
+          >
+            Załóż konto
+          </a>
+          </div>
+        </div>
+      </header>
+
+      <!-- Przyciemnienie treści pod menu (scrim) — poza <header>, by fixed liczył się względem okna. -->
+      <div
+        id="mobile-menu-scrim"
+        class="pointer-events-none fixed inset-0 z-40 bg-slate-900/50 opacity-0 transition-opacity duration-200 ease-out lg:hidden"
+      >
+      </div>
+
+      <script is:inline>
+        (() => {
+          const toggle = document.getElementById("mobile-menu-toggle");
+          const menu = document.getElementById("mobile-menu");
+          const scrim = document.getElementById("mobile-menu-scrim");
+          if (!toggle || !menu) return;
+          let isOpen = false;
+          const setOpen = (next) => {
+            isOpen = next;
+            menu.inert = !next;
+            menu.classList.toggle("pointer-events-none", !next);
+            menu.classList.toggle("-translate-y-2", !next);
+            menu.classList.toggle("opacity-0", !next);
+            menu.classList.toggle("pointer-events-auto", next);
+            menu.classList.toggle("translate-y-0", next);
+            menu.classList.toggle("opacity-100", next);
+            if (scrim) {
+              scrim.classList.toggle("pointer-events-none", !next);
+              scrim.classList.toggle("opacity-0", !next);
+              scrim.classList.toggle("opacity-100", next);
+            }
+            toggle.setAttribute("aria-expanded", String(next));
+            toggle.setAttribute("aria-label", next ? "Zamknij menu" : "Otwórz menu");
+          };
+          toggle.addEventListener("click", (e) => {
+            e.stopPropagation();
+            setOpen(!isOpen);
+          });
+          menu.addEventListener("click", (e) => e.stopPropagation());
+          menu
+            .querySelectorAll("[data-mobile-nav-link]")
+            .forEach((link) => link.addEventListener("click", () => setOpen(false)));
+          document.addEventListener("click", () => isOpen && setOpen(false));
+          document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" && isOpen) setOpen(false);
+          });
+        })();
+      </script>
+
+      <main class="flex-1">
+        <!-- HERO -->
+        <section class="py-16 md:py-24">
+          <div class="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
+            <!-- tekst -->
+            <div>
+              <p
+                class="mb-5 inline-flex rounded-full border border-emerald-200 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/15 px-4 py-2 text-sm font-black text-emerald-900 dark:text-emerald-200 shadow-sm"
+              >
+                30 dni za darmo · bez karty
+              </p>
+              <h1
+                class="text-4xl font-black tracking-tight text-slate-950 dark:text-slate-100 sm:text-5xl lg:text-6xl"
+              >
+                Koniec z odpisywaniem na DM-y o 22:00.
+              </h1>
+              <p
+                class="mt-6 text-lg leading-8 text-slate-700 dark:text-slate-300 sm:text-xl"
+              >
+                Klientki rezerwują same przez Twój link — Ty masz wolne wieczory
+                i cały grafik w jednym miejscu.
+              </p>
+              <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+                <a
+                  href={registerUrl}
+                  class="rounded-full bg-slate-950 dark:bg-brand-600 px-7 py-4 text-center text-base font-bold text-white shadow-lg shadow-slate-900/15 transition hover:-translate-y-0.5 hover:bg-slate-800 dark:hover:bg-brand-500"
+                >
+                  Załóż konto — 30 dni za darmo
+                </a>
+                <a
+                  href="#aplikacja"
+                  class="rounded-full border border-slate-300 dark:border-white/15 bg-white/70 dark:bg-white/5 px-7 py-4 text-center text-base font-bold text-slate-950 dark:text-slate-100 transition hover:-translate-y-0.5 hover:bg-white dark:hover:bg-white/10"
+                >
+                  Zobacz, jak to działa
+                </a>
+              </div>
+            </div>
+
+            <!-- ramka telefonu z zapętlonym podglądem kalendarza -->
+            <div class="flex justify-center mt-6 lg:mt-0">
+              <PhoneFrame class="w-[220px] lg:w-[330px]" tilt>
+                <video
+                  width="428"
+                  height="932"
+                  autoplay
+                  loop
+                  muted
+                  playsinline
+                  class="block w-full h-auto aspect-[428/932] bg-black"
+                >
+                  <source
+                    src="/CalendarPreview.av1.mp4"
+                    type='video/mp4; codecs="av01.0.04M.08"'
+                  />
+                  <source src="/CalendarPreview.mp4" type="video/mp4" />
+                </video>
+              </PhoneFrame>
+            </div>
+          </div>
+        </section>
+
+        <!-- PROBLEM -->
+        <section id="problem" class="py-10 md:py-16">
+          <div class="max-w-3xl">
+            <p
+              class="text-sm font-black uppercase tracking-[0.2em] text-amber-700 dark:text-brand-300"
+            >
+              Brzmi znajomo?
+            </p>
+            <h2 class="mt-3 text-4xl font-black tracking-tight sm:text-5xl">
+              Twój talent to zabiegi. Nie zarządzanie chaosem w wiadomościach.
+            </h2>
+          </div>
+          <div class="mt-10 grid gap-4 sm:grid-cols-3">
+            {
+              painPoints.map((pain) => (
+                <article class="flex items-start gap-4 rounded-4xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-white/5 p-6 shadow-sm">
+                  <span class="text-2xl" aria-hidden="true">
+                    {pain.emoji}
+                  </span>
+                  <p class="text-lg leading-7 text-slate-700 dark:text-slate-300">{pain.text}</p>
+                </article>
+              ))
+            }
+          </div>
+          <p class="mt-8 max-w-2xl text-lg leading-8 text-slate-600 dark:text-slate-400">
+            <strong class="text-slate-950 dark:text-white">zapisz.me przejmuje umawianie wizyt</strong> — Ty
+            robisz zabiegi, resztą zajmuje się aplikacja.
+          </p>
+        </section>
+
+        <!-- APLIKACJA W AKCJI -->
+        <section id="aplikacja" class="py-10 md:py-16">
+          <div class="max-w-3xl">
+            <p
+              class="text-sm font-black uppercase tracking-[0.2em] text-amber-700 dark:text-brand-300"
+            >
+              Zobacz, jak to działa
+            </p>
+            <h2 class="mt-3 text-4xl font-black tracking-tight sm:text-5xl">
+              Dwie strony jednej aplikacji.
+            </h2>
+            <p class="mt-5 text-lg leading-8 text-slate-600 dark:text-slate-400">
+              Po lewej to, co widzi Twoja klientka. Po prawej panel, w którym
+              Ty ogarniasz grafik. Kliknij i sprawdź — bez zakładania konta.
+            </p>
+          </div>
+
+          <!-- CO WIDZI KLIENTKA — żywe demo w telefonie -->
+          <div class="mt-12 grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
+            <div>
+              <p
+                class="text-sm font-black uppercase tracking-[0.16em] text-amber-700 dark:text-brand-300"
+              >
+                Oczami klientki
+              </p>
+              <h3 class="mt-3 text-2xl font-black sm:text-3xl">
+                Rezerwacja w kilka kliknięć
+              </h3>
+              <p class="mt-4 text-lg leading-8 text-slate-600 dark:text-slate-400">
+                Wybór usługi, termin z realnej dostępności i potwierdzenie
+                kodem SMS — bez konta i haseł. To działające demo, nie obrazek —
+                spróbuj obok.
+              </p>
+              <a
+                href="/demo-kalendarz"
+                class="mt-6 inline-flex items-center gap-2 rounded-full border border-slate-300 dark:border-white/15 bg-white/70 dark:bg-white/5 px-6 py-3 text-sm font-bold text-slate-950 dark:text-slate-100 transition hover:-translate-y-0.5 hover:bg-white dark:hover:bg-white/10"
+              >
+                Otwórz pełne demo →
+              </a>
+            </div>
+            <div class="flex justify-center">
+              <PhoneFrame class="mx-auto w-[300px]">
+                <!-- Iframe renderowany w realnej szerokości mobile (390px) i skalowany
+                     w dół, żeby layout rezerwacji był ostry, nie ściśnięty.
+                     scale = szer. ekranu (300 − 2·10 ramki = 280) / 390 ≈ 0.718. -->
+                <div class="relative aspect-[428/932] w-full overflow-hidden bg-[#f8f3ec]">
+                  <iframe
+                    src={demoEmbedUrl}
+                    title="Demo rezerwacji zapisz.me — wypróbuj na żywo"
+                    loading="lazy"
+                    style="width:390px;max-width:none;height:850px;border:0;transform:scale(0.718);transform-origin:top left"
+                    class="absolute left-0 top-0"
+                  >
+                  </iframe>
+                </div>
+              </PhoneFrame>
+            </div>
+          </div>
+
+          <!-- TWÓJ PANEL — realne zrzuty aplikacji -->
+          <div class="mt-16">
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p
+                  class="text-sm font-black uppercase tracking-[0.16em] text-amber-700 dark:text-brand-300"
+                >
+                  Twój panel
+                </p>
+                <h3 class="mt-3 text-2xl font-black sm:text-3xl">
+                  Wszystko w jednym miejscu
+                </h3>
+              </div>
+              <a
+                href={panelDemoUrl}
+                class="inline-flex w-fit items-center gap-2 rounded-full bg-slate-950 dark:bg-brand-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-slate-900/15 transition hover:-translate-y-0.5 hover:bg-slate-800 dark:hover:bg-brand-500"
+              >
+                Wejdź do panelu demo →
+              </a>
+            </div>
+
+            <!-- Hero-shot: kalendarz tygodnia (light + dark) -->
+            <figure class="mt-8">
+              <div class="overflow-hidden rounded-2xl border border-white/80 dark:border-white/10 shadow-xl shadow-slate-900/10">
+                <Image
+                  src={panelTydzien}
+                  alt={panelShots[0].alt}
+                  widths={[640, 960, 1280]}
+                  sizes="(max-width: 1024px) 100vw, 960px"
+                  class="block w-full dark:hidden"
+                />
+                <Image
+                  src={panelTydzienDark}
+                  alt=""
+                  widths={[640, 960, 1280]}
+                  sizes="(max-width: 1024px) 100vw, 960px"
+                  class="hidden w-full dark:block"
+                />
+              </div>
+              <figcaption class="mt-3 text-center text-sm text-slate-500 dark:text-slate-400">
+                {panelShots[0].benefit}
+              </figcaption>
+            </figure>
+
+            <!-- Pozostałe zrzuty -->
+            <div class="mt-4 grid gap-4 sm:grid-cols-3">
+              {
+                panelShots.slice(1).map((shot) => (
+                  <figure>
+                    <div class="overflow-hidden rounded-2xl border border-white/80 dark:border-white/10 shadow-lg">
+                      <Image
+                        src={shot.src}
+                        alt={shot.alt}
+                        widths={[400, 720]}
+                        sizes="(max-width: 640px) 100vw, 33vw"
+                        class="block w-full"
+                      />
+                    </div>
+                    <figcaption class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                      {shot.benefit}
+                    </figcaption>
+                  </figure>
+                ))
+              }
+            </div>
+          </div>
+        </section>
+
+        <!-- JAK DZIAŁA -->
+        <section id="jak-dziala" class="py-10 md:py-16">
+          <div
+            class="rounded-[2.5rem] bg-slate-950 p-7 text-white sm:p-10 lg:p-12"
+          >
+            <div class="grid gap-10 lg:grid-cols-[0.8fr_1.2fr]">
+              <div>
+                <p
+                  class="text-sm font-black uppercase tracking-[0.2em] text-amber-300 dark:text-brand-300"
+                >
+                  Jak działa
+                </p>
+                <h2 class="mt-3 text-4xl font-black tracking-tight sm:text-5xl">
+                  Od linku do wizyty w trzech krokach.
+                </h2>
+              </div>
+              <div class="grid gap-4 sm:grid-cols-3">
+                {
+                  steps.map((step) => (
+                    <div class="rounded-3xl bg-white/10 p-5">
+                      <p class="text-3xl font-black text-amber-300 dark:text-brand-300">
+                        {step.number}
+                      </p>
+                      <h3 class="mt-5 font-black">{step.title}</h3>
+                      <p class="mt-3 text-sm leading-6 text-white/65">
+                        {step.description}
+                      </p>
+                    </div>
+                  ))
+                }
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- CENNIK -->
+        <section id="cennik" class="py-10 md:py-16">
+          <div class="max-w-3xl">
+            <p
+              class="text-sm font-black uppercase tracking-[0.2em] text-amber-700 dark:text-brand-300"
+            >
+              Cennik
+            </p>
+            <h2 class="mt-3 text-4xl font-black tracking-tight sm:text-5xl">
+              Jeden prosty plan. Płacisz za tyle osób, ile przyjmuje gabinet.
+            </h2>
+            <p class="mt-5 text-lg leading-8 text-slate-600 dark:text-slate-400">
+              99 zł za pierwsze stanowisko, 39 zł za każde kolejne.
+              Bez prowizji od wizyt.
+            </p>
+          </div>
+
+          <div class="mt-10 grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
+            <article
+              class="flex flex-col rounded-4xl border border-slate-950 bg-slate-950 p-8 text-white shadow-xl shadow-slate-900/15"
+            >
+              <p
+                class="text-sm font-black uppercase tracking-[0.18em] text-amber-200 dark:text-brand-300"
+              >
+                Plan zapisz.me
+              </p>
+              <p class="mt-4 flex items-end gap-2">
+                <span class="text-5xl font-black">99 zł</span>
+                <span class="pb-1 text-base font-bold text-white/55"
+                  >/ miesiąc za pierwszą osobę</span
+                >
+              </p>
+              <p class="mt-2 text-sm font-semibold text-white/70">
+                + 39 zł za każde kolejne stanowisko
+              </p>
+              <div class="mt-5 rounded-2xl bg-white/10 p-4 text-sm leading-6 text-white/75">
+                <span class="font-black text-amber-300 dark:text-brand-300">Własna marka — 249 zł / mies.</span>
+                + 39 zł za stanowisko. Twoja własna domena i adres bez
+                „zapisz.me".
+              </div>
+              <ul class="mt-7 space-y-3 text-sm font-semibold text-white/75">
+                {
+                  pricingIncluded.map((item) => (
+                    <li class="flex items-start gap-3">
+                      <span class="mt-0.5 font-black text-amber-300 dark:text-brand-300">✓</span>
+                      <span>{item}</span>
+                    </li>
+                  ))
+                }
+              </ul>
+              <a
+                href={registerUrl}
+                class="mt-8 inline-flex w-full justify-center rounded-full bg-white dark:bg-[#221c38] px-6 py-4 text-base font-bold text-slate-950 dark:text-slate-100 shadow-lg transition hover:-translate-y-0.5 hover:bg-amber-100"
+              >
+                Załóż konto — 30 dni za darmo
+              </a>
+              <p class="mt-4 text-center text-sm text-white/55">
+                30 dni pełnej wersji bez karty. Płatność rocznie — 15% taniej.
+              </p>
+            </article>
+
+            <div class="flex flex-col gap-5">
+              <article
+                class="rounded-4xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-white/5 p-7 shadow-sm"
+              >
+                <p
+                  class="text-sm font-black uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400"
+                >
+                  Przykłady
+                </p>
+                <div class="mt-5 space-y-3">
+                  {
+                    pricingExamples.map((ex) => (
+                      <div class="flex items-center justify-between gap-4 rounded-2xl bg-white dark:bg-[#221c38] p-4 shadow-sm">
+                        <div>
+                          <p class="font-black">{ex.who}</p>
+                          <p class="text-sm text-slate-500 dark:text-slate-400">{ex.note}</p>
+                        </div>
+                        <p class="text-xl font-black">{ex.price}</p>
+                      </div>
+                    ))
+                  }
+                </div>
+              </article>
+
+              <article
+                class="rounded-4xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-white/5 p-7 shadow-sm"
+              >
+                <p
+                  class="text-sm font-black uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400"
+                >
+                  SMS-y i powiadomienia
+                </p>
+                <p class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-400">
+                  <span class="font-black text-slate-900 dark:text-white">500 SMS gratis</span> na
+                  start, potem pakiety od 49 zł — płacisz raz, bez rosnącego
+                  abonamentu. E-mail i powiadomienia w aplikacji bez limitu.
+                </p>
+              </article>
+
+              <article
+                class="rounded-4xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-white/5 p-7 shadow-sm"
+              >
+                <p
+                  class="text-sm font-black uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400"
+                >
+                  Bez zobowiązań
+                </p>
+                <h3 class="mt-3 text-2xl font-black">
+                  Płacisz miesiąc do miesiąca.
+                </h3>
+                <p class="mt-3 leading-7 text-slate-600 dark:text-slate-400">
+                  Zaczynasz od 30 dni za darmo, bez karty. Rezygnujesz, kiedy
+                  chcesz — bez umów na czas określony i bez prowizji od wizyt.
+                </p>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <!-- CZYM SIĘ RÓŻNIMY (pas) -->
+        <section class="py-10 md:py-16">
+          <div
+            class="rounded-[2.5rem] border border-white/80 dark:border-white/10 bg-white/80 dark:bg-white/5 p-8 shadow-sm sm:p-12"
+          >
+            <p
+              class="text-sm font-black uppercase tracking-[0.2em] text-amber-700 dark:text-brand-300"
+            >
+              Czym się różnimy
+            </p>
+            <h2 class="mt-3 max-w-2xl text-3xl font-black tracking-tight sm:text-4xl">
+              Klientki rezerwują u Ciebie — nie w katalogu konkurencji.
+            </h2>
+            <div class="mt-8 grid gap-4 sm:grid-cols-3">
+              <div class="rounded-3xl bg-[#f8f3ec] dark:bg-[#181427] p-6">
+                <p class="font-black">Twoja strona, nie katalog</p>
+                <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-400">
+                  Widzą tylko Ciebie — żadnych „podobnych salonów obok”.
+                </p>
+              </div>
+              <div class="rounded-3xl bg-[#f8f3ec] dark:bg-[#181427] p-6">
+                <p class="font-black">Bez prowizji od wizyt</p>
+                <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-400">
+                  Płacisz stały abonament. Każda złotówka z wizyty jest Twoja.
+                </p>
+              </div>
+              <div class="rounded-3xl bg-[#f8f3ec] dark:bg-[#181427] p-6">
+                <p class="font-black">Rezerwacja bez konta</p>
+                <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-400">
+                  Klientka potwierdza kodem SMS — zero tarcia przy zapisie.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- DLA KOGO -->
+        <section id="dla-kogo" class="grid gap-8 py-10 md:py-16 lg:grid-cols-2">
+          <div>
+            <p
+              class="text-sm font-black uppercase tracking-[0.2em] text-amber-700 dark:text-brand-300"
+            >
+              Dla kogo
+            </p>
+            <h2 class="mt-3 text-4xl font-black tracking-tight sm:text-5xl">
+              Zbudowane dla kobiet, które pracują solo w branży beauty.
+            </h2>
+            <p class="mt-5 text-lg leading-8 text-slate-600 dark:text-slate-400">
+              Nie dla wielkich salonów z recepcją. Dla Ciebie — jeśli przyjmujesz
+              klientki sama i chcesz, żeby umawianie wizyt wreszcie przestało
+              kraść Ci czas.
+            </p>
+          </div>
+          <div class="grid gap-3 sm:grid-cols-2">
+            {
+              audiences.map((audience) => (
+                <p class="rounded-3xl bg-white/75 dark:bg-white/5 p-5 font-bold shadow-sm">
+                  {audience}
+                </p>
+              ))
+            }
+          </div>
+        </section>
+
+        <!-- O MNIE -->
+        <section id="o-mnie" class="py-10 md:py-16">
+          <div
+            class="flex flex-col items-center gap-8 rounded-[2.5rem] border border-white/80 dark:border-white/10 bg-white/80 dark:bg-white/5 p-8 shadow-sm sm:p-12 lg:flex-row"
+          >
+            <img
+              src="/owner/profilowe.jpg"
+              alt="Mateusz Chodacki — twórca zapisz.me"
+              class="size-32 shrink-0 rounded-full object-cover object-center shadow-lg ring-4 ring-brand-200 dark:ring-brand-700 lg:size-40"
+            />
+            <div>
+              <p
+                class="text-sm font-black uppercase tracking-[0.2em] text-amber-700 dark:text-brand-300"
+              >
+                Twórca
+              </p>
+              <h2 class="mt-2 text-2xl font-black">Cześć, jestem Mateusz.</h2>
+              <p class="mt-3 leading-7 text-slate-600 dark:text-slate-400">
+                Zbudowałem zapisz.me, bo patrzyłem, jak moja przyjaciółka co
+                wieczór traci czas na odpisywanie klientkom na Instagramie.
+                Chciałem narzędzie, które po prostu działa — bez nauki obsługi
+                i bez prowizji od wizyt.
+              </p>
+              <p class="mt-3 leading-7 text-slate-600 dark:text-slate-400">
+                Jeśli masz pytania zanim założysz konto — pisz na
+                <a
+                  href="https://www.instagram.com/zapisz.me/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="font-bold text-slate-950 dark:text-slate-100 underline decoration-brand-400"
+                  >Instagramie</a
+                >, <a
+                  href="https://www.facebook.com/profile.php?id=61589291684604"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="font-bold text-slate-950 dark:text-slate-100 underline decoration-brand-400"
+                  >Facebooku</a
+                > lub na maila
+                <a
+                  href="mailto:kontakt@zapisz.me"
+                  class="font-bold text-slate-950 dark:text-slate-100 underline decoration-brand-400"
+                  >kontakt@zapisz.me</a
+                >. Odpowiadam osobiście.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- FAQ -->
+        <section id="faq" class="py-10 md:py-16">
+          <div class="max-w-3xl">
+            <p
+              class="text-sm font-black uppercase tracking-[0.2em] text-amber-700 dark:text-brand-300"
+            >
+              FAQ
+            </p>
+            <h2 class="mt-3 text-4xl font-black tracking-tight sm:text-5xl">
+              Zanim założysz konto.
+            </h2>
+          </div>
+          <div class="mt-10 grid gap-3 lg:grid-cols-2">
+            {
+              faqItems.map((item) => (
+                <details class="group rounded-3xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-white/5 p-6 shadow-sm">
+                  <summary class="flex cursor-pointer list-none items-center justify-between gap-4 font-black">
+                    {item.q}
+                    <span class="shrink-0 text-amber-700 transition group-open:rotate-45 dark:text-brand-300" aria-hidden="true">
+                      +
+                    </span>
+                  </summary>
+                  <p class="mt-3 leading-7 text-slate-600 dark:text-slate-400">
+                    {item.a}
+                  </p>
+                </details>
+              ))
+            }
+          </div>
+        </section>
+
+        <!-- FINAL CTA -->
+        <section id="dolacz" class="py-10 md:py-16">
+          <div
+            class="flex flex-col items-center gap-6 rounded-[2.5rem] border border-white/80 dark:border-white/10 bg-white/80 dark:bg-white/5 px-8 py-12 text-center shadow-sm sm:px-12"
+          >
+            <p
+              class="text-sm font-black uppercase tracking-[0.2em] text-amber-700 dark:text-brand-300"
+            >
+              Zacznij teraz
+            </p>
+            <h2 class="max-w-2xl text-4xl font-black tracking-tight sm:text-5xl">
+              Zacznij bez ryzyka — 30 dni za darmo.
+            </h2>
+            <p class="max-w-xl text-lg leading-8 text-slate-600 dark:text-slate-400">
+              Skonfiguruj gabinet, wklej link na Instagramie i sprawdź, jak
+              wygląda pierwszy tydzień bez DM-ów o 22:00.
+            </p>
+            <div class="flex flex-col gap-3 sm:flex-row">
+              <a
+                href={registerUrl}
+                class="rounded-full bg-slate-950 px-8 py-4 text-base font-bold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-slate-800"
+              >
+                Załóż darmowe konto
+              </a>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer
+        class="flex flex-col gap-3 border-t border-slate-950/10 dark:border-white/10 py-8 text-sm text-slate-600 dark:text-slate-400 sm:flex-row sm:items-center sm:justify-between"
+      >
+        <p>© 2026 zapisz.me — rezerwacje dla gabinetów beauty solo.</p>
+        <div class="flex flex-wrap items-center gap-4">
+          <a
+            href="https://www.instagram.com/zapisz.me/"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="zapisz.me na Instagramie"
+            class="transition hover:text-slate-950 dark:hover:text-white"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="size-5" aria-hidden="true">
+              <rect width="20" height="20" x="2" y="2" rx="5"/>
+              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+              <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+            </svg>
+          </a>
+          <a
+            href="https://www.facebook.com/profile.php?id=61589291684604"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="zapisz.me na Facebooku"
+            class="transition hover:text-slate-950 dark:hover:text-white"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="size-5" aria-hidden="true">
+              <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
+            </svg>
+          </a>
+          <span class="h-4 w-px bg-slate-300 dark:bg-slate-600" aria-hidden="true"></span>
+          <a class="hover:text-slate-950 dark:hover:text-white" href="/regulamin">Regulamin</a>
+          <a class="hover:text-slate-950 dark:hover:text-white" href="/polityka-prywatnosci">Polityka prywatności</a>
+          <a class="font-bold text-slate-950 dark:text-slate-100" href="mailto:kontakt@zapisz.me">kontakt@zapisz.me</a>
+        </div>
+      </footer>
+    </div>
+    <!-- Lightbox -->
+    <dialog
+      id="lightbox"
+      aria-label="Podgląd zdjęcia"
+      aria-modal="true"
+    >
+      <div id="lb-viewport" class="absolute inset-0 flex items-center justify-center overflow-hidden">
+        <img
+          id="lb-img"
+          alt=""
+          draggable="false"
+          class="max-w-[90vw] max-h-[90vh] object-contain select-none touch-none"
+        />
+      </div>
+      <button
+        id="lb-close"
+        class="absolute right-4 top-4 z-10 flex size-10 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur-sm transition hover:bg-white/20"
+        aria-label="Zamknij podgląd"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="size-5" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </dialog>
+  </body>
+</html>
+
+<style is:global>
+  #lightbox {
+    position: fixed;
+    inset: 0;
+    width: 100dvw;
+    height: 100dvh;
+    max-width: 100dvw;
+    max-height: 100dvh;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: rgba(0, 0, 0, 0.92);
+  }
+  #lightbox::backdrop {
+    background: transparent;
+  }
+  #lb-img {
+    transform-origin: center center;
+    will-change: transform;
+  }
+  #aplikacja figure img {
+    cursor: zoom-in;
+  }
+</style>
+
+<script>
+  const dialog = document.getElementById('lightbox') as HTMLDialogElement;
+  const lbImg  = document.getElementById('lb-img')       as HTMLImageElement;
+  const lbView = document.getElementById('lb-viewport')  as HTMLDivElement;
+  const lbClose = document.getElementById('lb-close')    as HTMLButtonElement;
+
+  // ── state ────────────────────────────────────────────────────────────────
+  let scale = 1, lastScale = 1;
+  let tx = 0, ty = 0, lastTx = 0, lastTy = 0;
+  let pinchStartDist = 0;
+  let isDragging = false, mouseStartX = 0, mouseStartY = 0;
+  let lastTapTime = 0;
+
+  function applyTransform(animated = false) {
+    lbImg.style.transition = animated ? 'transform 0.25s ease-out' : 'none';
+    lbImg.style.transform = `translate(${tx}px,${ty}px) scale(${scale})`;
+  }
+
+  function resetTransform(animated = false) {
+    scale = 1; lastScale = 1; tx = 0; ty = 0; lastTx = 0; lastTy = 0;
+    applyTransform(animated);
+  }
+
+  // ── open ─────────────────────────────────────────────────────────────────
+  document.querySelectorAll<HTMLImageElement>('#aplikacja figure img').forEach(img => {
+    img.addEventListener('click', () => {
+      lbImg.src = img.src;
+      lbImg.alt = img.alt;
+      resetTransform();
+      dialog.showModal();
+    });
+  });
+
+  // ── close ────────────────────────────────────────────────────────────────
+  lbClose.addEventListener('click', () => { resetTransform(); dialog.close(); });
+
+  // click on black backdrop area (not the image itself)
+  lbView.addEventListener('click', (e) => {
+    if (e.target === lbView && !isDragging) { resetTransform(); dialog.close(); }
+  });
+
+  // Escape: browser closes modal automatically; reset transform to be clean
+  dialog.addEventListener('close', () => resetTransform());
+
+  // ── touch: pinch zoom + pan ──────────────────────────────────────────────
+  lbView.addEventListener('touchstart', (e) => {
+    if (e.touches.length === 2) {
+      pinchStartDist = Math.hypot(
+        e.touches[1].clientX - e.touches[0].clientX,
+        e.touches[1].clientY - e.touches[0].clientY,
+      );
+    } else if (e.touches.length === 1) {
+      // pan when zoomed
+      mouseStartX = e.touches[0].clientX - lastTx;
+      mouseStartY = e.touches[0].clientY - lastTy;
+
+      // double-tap toggle zoom
+      const now = Date.now();
+      if (now - lastTapTime < 300) {
+        if (scale > 1) resetTransform(true);
+        else { scale = 2.5; lastScale = 2.5; applyTransform(true); }
+      }
+      lastTapTime = now;
+    }
+  }, { passive: true });
+
+  lbView.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    if (e.touches.length === 2) {
+      const dist = Math.hypot(
+        e.touches[1].clientX - e.touches[0].clientX,
+        e.touches[1].clientY - e.touches[0].clientY,
+      );
+      scale = Math.min(5, Math.max(1, lastScale * dist / pinchStartDist));
+      applyTransform();
+    } else if (e.touches.length === 1 && scale > 1) {
+      tx = e.touches[0].clientX - mouseStartX;
+      ty = e.touches[0].clientY - mouseStartY;
+      applyTransform();
+    }
+  }, { passive: false });
+
+  lbView.addEventListener('touchend', (e) => {
+    if (e.touches.length === 0) {
+      lastScale = scale; lastTx = tx; lastTy = ty;
+      if (scale <= 1.05) resetTransform();
+    }
+    isDragging = false;
+  });
+
+  // ── mouse: wheel zoom + drag (desktop) ───────────────────────────────────
+  lbView.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    scale = Math.min(5, Math.max(1, scale * (e.deltaY > 0 ? 0.85 : 1.15)));
+    lastScale = scale;
+    if (scale <= 1) resetTransform();
+    else applyTransform();
+  }, { passive: false });
+
+  lbView.addEventListener('mousedown', (e) => {
+    if (scale > 1) {
+      isDragging = true;
+      mouseStartX = e.clientX - lastTx;
+      mouseStartY = e.clientY - lastTy;
+      lbView.style.cursor = 'grabbing';
+      e.preventDefault();
+    }
+  });
+
+  window.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    tx = e.clientX - mouseStartX;
+    ty = e.clientY - mouseStartY;
+    applyTransform();
+  });
+
+  window.addEventListener('mouseup', () => {
+    if (!isDragging) return;
+    isDragging = false;
+    lastTx = tx; lastTy = ty;
+    lbView.style.cursor = '';
+  });
+</script>

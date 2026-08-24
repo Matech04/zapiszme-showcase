@@ -1,0 +1,25 @@
+# Zależności (najważniejsze!)
+node_modules/
+
+# Lokalne buildy
+dist/
+out/
+
+# Cache i pliki tymczasowe Angulara
+.angular/
+
+# Systemy kontroli wersji
+.git/
+.gitignore
+
+# Ustawienia edytorów kodu
+.vscode/
+.idea/
+
+# Logi błędów
+npm-debug.log
+yarn-error.log
+*.log
+
+# Ewentualne lokalne pliki konfiguracyjne ze zmiennymi
+.env.local

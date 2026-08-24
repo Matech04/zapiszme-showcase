@@ -1,0 +1,84 @@
+// Grafana Alloy — scrape lokalnych exporterów + remote_write do Grafana Cloud (Free).
+// Sekrety (URL/user/token) wstrzykiwane przez zmienne środowiskowe z .env,
+// patrz docker-compose.monitoring.yml → service "alloy".
+
+prometheus.scrape "node" {
+  targets    = [{ "__address__" = "node-exporter:9100" }]
+  job_name   = "node-exporter"
+  forward_to = [prometheus.remote_write.grafanacloud.receiver]
+}
+
+prometheus.scrape "postgres" {
+  targets    = [{ "__address__" = "postgres-exporter:9187" }]
+  job_name   = "postgres-exporter"
+  forward_to = [prometheus.remote_write.grafanacloud.receiver]
+}
+
+prometheus.remote_write "grafanacloud" {
+  endpoint {
+    url = sys.env("GRAFANA_CLOUD_PROM_URL")
+
+    basic_auth {
+      username = sys.env("GRAFANA_CLOUD_PROM_USER")
+      password = sys.env("GRAFANA_CLOUD_PROM_TOKEN")
+    }
+  }
+}
+
+// ── LOGI KONTENERÓW → Loki (Grafana Cloud) ────────────────────────────────
+// Alloy odczytuje logi kontenerów bezpośrednio z dockerd (socket :ro), trzyma
+// lokalnie tylko pozycję odczytu (w storage.path) i wypycha do Loki. Serilog
+// w Production pisze CLEF/JSON na stdout, więc pola strukturalne (TenantId,
+// CorrelationId, StatusCode…) jadą w treści logu i są filtrowalne w LogQL.
+
+discovery.docker "containers" {
+  host = "unix:///var/run/docker.sock"
+}
+
+discovery.relabel "containers" {
+  targets = discovery.docker.containers.targets
+
+  // dockerd zwraca nazwę jako "/nazwa" — obcinamy wiodący slash.
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.*)"
+    target_label  = "container"
+  }
+  rule {
+    source_labels = ["__meta_docker_container_log_stream"]
+    target_label  = "stream"
+  }
+}
+
+loki.source.docker "containers" {
+  host       = "unix:///var/run/docker.sock"
+  targets    = discovery.relabel.containers.output
+  forward_to = [loki.process.parse.receiver]
+}
+
+// Promujemy na labelki TYLKO niskokardynalne pola (poziom logu z CLEF "@l").
+// TenantId/CorrelationId celowo NIE są labelkami — wysadziłyby kardynalność
+// indeksu Loki; zostają w JSON-ie i filtruje się je przez `| json` w LogQL.
+loki.process "parse" {
+  // Pole CLEF "@l" zaczyna się od @, które w JMESPath jest operatorem
+  // (bieżący węzeł). Żeby wskazać pole DOSŁOWNIE nazwane "@l", trzeba je
+  // ująć w cudzysłów wewnątrz wyrażenia JMESPath → stąd podwójne cudzysłowy.
+  stage.json {
+    expressions = { level = "\"@l\"" }
+  }
+  stage.labels {
+    values = { level = "" }
+  }
+  forward_to = [loki.write.grafanacloud.receiver]
+}
+
+loki.write "grafanacloud" {
+  endpoint {
+    url = sys.env("GRAFANA_CLOUD_LOKI_URL")
+
+    basic_auth {
+      username = sys.env("GRAFANA_CLOUD_LOKI_USER")
+      password = sys.env("GRAFANA_CLOUD_LOKI_TOKEN")
+    }
+  }
+}

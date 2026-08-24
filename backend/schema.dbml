@@ -1,0 +1,195 @@
+Table Tenants {
+  Id uuid [primary key]
+  name string
+  slug string
+  CustomerVerificationChannel CustomerVerificationChannel
+  TimeZone string
+}
+
+Table Employees {
+  Id uuid [primary key]
+  tenant_id uuid [ref: > Tenants.Id]
+  user_id uuid [unique, ref: > User.Id]
+  first_name string
+  last_name string
+  email string
+  specialization string
+  is_active boolean
+}
+
+Table User {
+  Id uuid [primary key]
+  email string [unique]
+  password_hash string
+  display_name string
+  created_at timestamp
+
+  Note: "Konto globalne (Identity). Tenant przez Employees.user_id. Role w AspNetUserRoles."
+}
+
+Table ServiceCategories {
+  Id uuid [primary key]
+  TenantId uuid [ref: > Tenants.Id]
+  name string
+  order_index int
+}
+
+Table VatRates {
+  Id uuid [primary key]
+  TenantId uuid [ref: > Tenants.Id]
+  name string
+  value decimal
+  is_default boolean
+  is_active boolean
+}
+
+Table Services {
+  Id uuid [primary key]
+  TenantId uuid [ref: > Tenants.Id]
+  name string
+  CategoryId uuid [ref: > ServiceCategories.Id]
+  VatRateId uuid [ref: > VatRates.Id]
+  price_amount decimal
+  price_currency string
+  duration_in_minutes int
+}
+
+Table EmployeeService {
+  Id uuid [primary key]
+  TenantId uuid [ref: > Tenants.Id]
+  EmployeeId uuid [ref: > Employees.Id]
+  ServiceId uuid [ref: > Services.Id]
+  custom_duration int
+  custom_price_amount decimal
+  custom_price_currency string
+
+  indexes {
+    (TenantId, EmployeeId, ServiceId) [unique]
+  }
+}
+
+Table EmployeeSchedule {
+  Id uuid [pk]
+  EmployeeId uuid [ref: > Employees.Id]
+  ActiveFrom date
+  ActiveTo date
+  NumberOfCycles int
+
+  Note: "ActiveFrom and ActiveTo are represented by ValueObject DateRange"
+}
+
+Table ScheduleDay {
+  Id uuid [pk]
+  EmployeeScheduleId uuid [ref: > EmployeeSchedule.Id]
+  DayIndex int
+
+  Note: "Godziny pracy w ScheduleDayWorkRanges, przerwy w ScheduleDayBreaks (ValueObject TimeRange)"
+}
+
+Table ScheduleDayWorkRanges {
+  Id uuid [pk]
+  ScheduleDayId uuid [ref: > ScheduleDay.Id]
+  StartTime time
+  EndTime time
+
+  Note: "StartTime and EndTime are represented by ValueObject TimeRange"
+}
+
+Table ScheduleDayBreaks {
+  Id uuid [pk]
+  ScheduleDayId uuid [ref: > ScheduleDay.Id]
+  StartTime time
+  EndTime time
+
+  Note: "StartTime and EndTime are represented by ValueObject TimeRange"
+}
+
+Table EmployeeScheduleOverride {
+  Id uuid [primary key]
+  EmployeeId uuid [ref: > Employees.Id]
+  Date date
+
+  Note: "Godziny w ScheduleOverrideWorkRanges i ScheduleOverrideBreaks"
+}
+
+Table ScheduleOverrideWorkRanges {
+  Id uuid [pk]
+  ScheduleOverrideId uuid [ref: > EmployeeScheduleOverride.Id]
+  StartTime time
+  EndTime time
+
+  Note: "StartTime and EndTime are represented by ValueObject TimeRange"
+}
+
+Table EmployeeScheduleOverrideBreaks {
+  Id uuid [pk]
+  ScheduleOverrideId uuid [ref: > EmployeeScheduleOverride.Id]
+  StartTime time
+  EndTime time
+
+  Note: "StartTime and EndTime are represented by ValueObject TimeRange"
+}
+
+Table EmployeeAbsence {
+  Id uuid [primary key]
+  EmployeeId uuid [ref: > Employees.Id]
+  StartDate date
+  EndDate date
+  AbsenceType AbsenceType
+  AbsenceStatus AbsenceStatus
+
+  Note: "W kodzie: EmployeeLeave / tabela EmployeeLeaves. StartDate and EndDate are represented by ValueObject DateRange"
+}
+
+Table Customer {
+  Id uuid [primary key]
+  tenant_id uuid [ref: > Tenants.Id]
+  first_name string
+  last_name string
+  email string
+  phone_number string
+  created_at timestamp
+  general_notes text
+
+  indexes {
+    (tenant_id, phone_number) [name: "IX_Customer_Tenant_Phone"]
+    (tenant_id, email) [name: "IX_Customer_Tenant_Email"]
+  }
+}
+
+Table Appointment {
+  Id uuid [primary key]
+  tenant_id uuid [ref: > Tenants.Id]
+  employee_id uuid [ref: > Employees.Id]
+  service_id uuid [ref: > Services.Id]
+  customer_id uuid [ref: > Customer.Id]
+  date date
+  start_time time
+  end_time time
+  status string
+  total_price_amount decimal
+  total_price_currency string
+  appointment_notes text
+
+  indexes {
+    (tenant_id, date) [name: "IX_Appointment_Tenant_Date"]
+    (employee_id, date) [name: "IX_Appointment_Employee_Date"]
+  }
+}
+
+Enum CustomerVerificationChannel {
+  Phone
+  Email
+}
+
+Enum AbsenceType {
+  Vacation
+  SickLeave
+  SpecialDay
+}
+
+Enum AbsenceStatus {
+  Approved
+  Pending
+  Rejected
+}

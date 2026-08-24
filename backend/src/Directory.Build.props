@@ -1,0 +1,20 @@
+<Project>
+  <!--
+    Globalne ustawienia dla wszystkich projektów źródłowych w `backend/src/`.
+    Zakaz `DateTime.Now` i `DateTimeOffset.Now` — czas serwera nie ma wartości
+    biznesowej, używamy `DateTime.UtcNow` + konwersji na strefę tenanta przez
+    `AppointmentScheduleGuard.ToUtcInstant`.
+  -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="3.3.4">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)BannedSymbols.txt" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <NoWarn>$(NoWarn);RS2008</NoWarn>
+    <WarningsAsErrors>$(WarningsAsErrors);RS0030</WarningsAsErrors>
+  </PropertyGroup>
+</Project>

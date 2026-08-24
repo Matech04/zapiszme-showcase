@@ -1,0 +1,179 @@
+---
+export const prerender = true;
+import '../styles/global.css';
+import Analytics from '../components/Analytics.astro';
+import ThemeInit from '../components/ThemeInit.astro';
+import ThemeToggle from '../components/ThemeToggle.astro';
+
+const updated = '10 maja 2026';
+---
+
+<!doctype html>
+<html lang="pl">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="icon" href="/favicon.ico" sizes="32x32" />
+		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Regulamin — zapisz.me</title>
+		<meta name="robots" content="noindex" />
+		<Analytics />
+		<ThemeInit />
+	</head>
+	<body class="min-h-dvh bg-[#f8f3ec] dark:bg-[#181427] text-slate-950 dark:text-slate-100 antialiased">
+		<div class="mx-auto max-w-3xl px-5 py-10 sm:px-8">
+			<header class="mb-10 flex items-center justify-between">
+				<a href="/" class="flex items-center gap-3" aria-label="zapisz.me">
+					<img src="/logo-light.svg" alt="" class="size-9 dark:hidden" />
+					<img src="/favicon.svg" alt="" class="hidden size-9 dark:block" />
+					<span class="text-lg font-black tracking-tight">zapisz.me</span>
+				</a>
+				<div class="flex items-center gap-2">
+					<ThemeToggle />
+					<a href="/" class="text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white">← Strona główna</a>
+				</div>
+			</header>
+
+			<main class="rounded-3xl border border-white/80 dark:border-white/10 bg-white/80 dark:bg-white/5 px-8 py-10 shadow-sm sm:px-12">
+				<p class="text-sm font-bold uppercase tracking-widest text-amber-700 dark:text-brand-300">Dokument prawny</p>
+				<h1 class="mt-3 text-4xl font-black tracking-tight">Regulamin serwisu zapisz.me</h1>
+				<p class="mt-3 text-sm text-slate-500 dark:text-slate-400">Ostatnia aktualizacja: {updated}</p>
+
+				<div class="legal">
+
+					<h2>§ 1. Postanowienia ogólne</h2>
+					<p>1. Niniejszy Regulamin określa zasady świadczenia usług drogą elektroniczną przez serwis <strong>zapisz.me</strong>, dostępny pod adresem <a href="https://zapisz.me">zapisz.me</a> oraz <a href="https://admin.zapisz.me">admin.zapisz.me</a>.</p>
+					<p>2. Usługodawcą jest <strong>Geko Monika Chodacka</strong>, ul. Czyżykowa 7, 65-502 Zielona Góra, NIP: 9291665156 (dalej: „Usługodawca").</p>
+					<p>3. Kontakt z Usługodawcą: <a href="mailto:kontakt@zapisz.me">kontakt@zapisz.me</a>.</p>
+					<p>4. Korzystanie z Serwisu oznacza akceptację niniejszego Regulaminu.</p>
+
+					<h2>§ 2. Definicje</h2>
+					<ul>
+						<li><strong>Serwis</strong> — platforma SaaS dostępna pod adresem zapisz.me, umożliwiająca zarządzanie rezerwacjami wizyt.</li>
+						<li><strong>Użytkownik</strong> — osoba fizyczna lub podmiot prowadzący działalność gospodarczą, który założył konto w Serwisie (właściciel salonu, pracownik).</li>
+						<li><strong>Klient salonu</strong> — osoba fizyczna korzystająca z publicznego kalendarza rezerwacji udostępnionego przez Użytkownika.</li>
+						<li><strong>Konto</strong> — indywidualne konto Użytkownika w Serwisie.</li>
+						<li><strong>Plan</strong> — wybrany przez Użytkownika pakiet funkcji i limitów.</li>
+					</ul>
+
+					<h2>§ 3. Rodzaj i zakres usług</h2>
+					<p>1. Usługodawca świadczy drogą elektroniczną usługę polegającą na udostępnieniu oprogramowania w modelu SaaS (Software as a Service) służącego do zarządzania rezerwacjami wizyt w salonach beauty, barberskich i podobnych.</p>
+					<p>2. W ramach Serwisu Użytkownik otrzymuje dostęp do:</p>
+					<ul>
+						<li>panelu administracyjnego salonu (<em>admin.zapisz.me</em>),</li>
+						<li>publicznego kalendarza rezerwacji dostępnego pod adresem <em>zapisz.me/[slug-salonu]</em>,</li>
+						<li>narzędzi do zarządzania grafikiem, pracownikami, usługami i klientami,</li>
+						<li>potwierdzeń e-mail dla właścicieli i klientów salonu,</li>
+						<li>potwierdzeń SMS (usługa płatna, dostępna po podpięciu karty płatniczej).</li>
+					</ul>
+
+					<h2>§ 4. Plany abonamentowe i opłaty</h2>
+					<p>1. Serwis oferuje następujące plany:</p>
+					<ul>
+						<li><strong>Trial</strong> — 14-dniowy bezpłatny dostęp do pełnej wersji Serwisu, bez wymogu podania danych karty płatniczej. Po upływie okresu próbnego konto zostaje automatycznie przekształcone w plan Free Solo.</li>
+						<li><strong>Free Solo</strong> — bezpłatny, bezterminowy plan obejmujący: 1 konto pracownika, do 50 rezerwacji miesięcznie, potwierdzenia e-mail, branding zapisz.me.</li>
+						<li><strong>Salon Pro</strong> — plan płatny w cenie <strong>79 zł brutto / miesiąc</strong>, obejmujący: nielimitowane rezerwacje, nieograniczoną liczbę pracowników, obsługę SMS pay-as-you-go, priorytetowe wsparcie.</li>
+					</ul>
+					<p>2. Opłaty za plan Salon Pro pobierane są z góry za każdy miesiąc rozliczeniowy za pośrednictwem operatora płatności Stripe (Stripe Payments Europe, Ltd.).</p>
+					<p>3. Usługa SMS jest rozliczana osobno w systemie pay-as-you-go. Opłata za wysłaną wiadomość SMS wynosi ok. 0,19 zł brutto. Pobieranie z karty następuje automatycznie po przekroczeniu progu 5 zł naliczonego zużycia.</p>
+					<p>4. Usługodawca zastrzega sobie prawo do zmiany cennika. O zmianie Użytkownik zostanie poinformowany e-mailem z co najmniej 30-dniowym wyprzedzeniem. W przypadku braku akceptacji nowego cennika Użytkownik może rozwiązać umowę przed datą wejścia zmiany w życie.</p>
+					<p>5. Faktury VAT są wystawiane i dostarczane Użytkownikowi drogą elektroniczną.</p>
+
+					<h2>§ 5. Zawarcie i rozwiązanie umowy</h2>
+					<p>1. Umowa o świadczenie usług drogą elektroniczną zostaje zawarta z chwilą rejestracji Konta przez Użytkownika.</p>
+					<p>2. Użytkownik na planie Free Solo może w każdej chwili usunąć Konto bez okresu wypowiedzenia.</p>
+					<p>3. Użytkownik na planie Salon Pro może wypowiedzieć umowę w dowolnym momencie w panelu konta lub drogą e-mailową. Umowa wygasa z końcem opłaconego okresu rozliczeniowego. Usługodawca nie zwraca opłat za niewykorzystaną część okresu.</p>
+					<p>4. Usługodawca może rozwiązać umowę ze skutkiem natychmiastowym w przypadku rażącego naruszenia Regulaminu przez Użytkownika, w szczególności działań niezgodnych z prawem.</p>
+
+					<h2>§ 6. Obowiązki Użytkownika</h2>
+					<p>Użytkownik zobowiązuje się do:</p>
+					<ul>
+						<li>podania prawdziwych danych przy rejestracji i utrzymywania ich aktualności,</li>
+						<li>korzystania z Serwisu zgodnie z jego przeznaczeniem i przepisami prawa,</li>
+						<li>nieudostępniania danych dostępowych osobom trzecim,</li>
+						<li>poinformowania klientów swojego salonu o przetwarzaniu ich danych osobowych za pośrednictwem Serwisu (Użytkownik jest administratorem danych swoich klientów),</li>
+						<li>nienaruszania praw własności intelektualnej Usługodawcy.</li>
+					</ul>
+
+					<h2>§ 7. Obowiązki Usługodawcy</h2>
+					<p>Usługodawca zobowiązuje się do:</p>
+					<ul>
+						<li>świadczenia usług z należytą starannością,</li>
+						<li>informowania Użytkownika z wyprzedzeniem o planowanych przerwach technicznych,</li>
+						<li>dołożenia starań w celu zapewnienia ciągłości działania Serwisu,</li>
+						<li>ochrony danych osobowych zgodnie z Polityką Prywatności i przepisami RODO.</li>
+					</ul>
+
+					<h2>§ 8. Odpowiedzialność</h2>
+					<p>1. Usługodawca nie ponosi odpowiedzialności za przerwy w działaniu Serwisu wynikające z przyczyn technicznych leżących po stronie podmiotów trzecich (operator hostingu, dostawcy usług e-mail, SMS, płatności).</p>
+					<p>2. Usługodawca nie ponosi odpowiedzialności za utratę przez Użytkownika przychodów w związku z niedostępnością Serwisu.</p>
+					<p>3. Użytkownik ponosi wyłączną odpowiedzialność za treści, dane klientów i ustawienia salonu wprowadzane do Serwisu.</p>
+					<p>4. Odpowiedzialność Usługodawcy wobec Użytkownika ograniczona jest do wysokości opłat wniesionych przez Użytkownika w ciągu 3 ostatnich miesięcy przed zdarzeniem powodującym szkodę.</p>
+
+					<h2>§ 9. Reklamacje</h2>
+					<p>1. Reklamacje dotyczące funkcjonowania Serwisu należy kierować na adres <a href="mailto:kontakt@zapisz.me">kontakt@zapisz.me</a>.</p>
+					<p>2. Reklamacja powinna zawierać: opis problemu, datę wystąpienia, dane konta.</p>
+					<p>3. Usługodawca rozpatruje reklamacje w terminie 14 dni roboczych od daty otrzymania.</p>
+
+					<h2>§ 10. Prawa własności intelektualnej</h2>
+					<p>Wszelkie prawa do Serwisu, w tym kod źródłowy, grafika, interfejs użytkownika i marka zapisz.me, należą do Usługodawcy i są chronione przepisami prawa autorskiego. Użytkownik nie nabywa żadnych praw własności intelektualnej poza licencją na korzystanie z Serwisu w zakresie określonym niniejszym Regulaminem.</p>
+
+					<h2>§ 11. Postanowienia końcowe</h2>
+					<p>1. W sprawach nieuregulowanych niniejszym Regulaminem stosuje się przepisy prawa polskiego, w szczególności Kodeksu cywilnego oraz ustawy o świadczeniu usług drogą elektroniczną.</p>
+					<p>2. Wszelkie spory wynikające z korzystania z Serwisu będą rozstrzygane przez sąd właściwy dla siedziby Usługodawcy.</p>
+					<p>3. Usługodawca zastrzega sobie prawo do zmiany Regulaminu. O istotnych zmianach Użytkownicy zostaną poinformowani drogą e-mailową z co najmniej 14-dniowym wyprzedzeniem.</p>
+					<p>4. Regulamin wchodzi w życie z dniem {updated}.</p>
+				</div>
+			</main>
+
+			<footer class="mt-8 flex flex-col gap-2 text-center text-sm text-slate-500 dark:text-slate-400 sm:flex-row sm:justify-between">
+				<p>© 2026 zapisz.me</p>
+				<div class="flex justify-center gap-4">
+					<a href="/regulamin" class="font-semibold text-slate-950 dark:text-slate-100">Regulamin</a>
+					<a href="/polityka-prywatnosci" class="hover:text-slate-950 dark:hover:text-white">Polityka prywatności</a>
+					<a href="mailto:kontakt@zapisz.me" class="hover:text-slate-950 dark:hover:text-white">kontakt@zapisz.me</a>
+				</div>
+			</footer>
+		</div>
+	</body>
+</html>
+
+<style>
+	.legal h2 {
+		font-size: 1.125rem;
+		font-weight: 900;
+		margin-top: 2rem;
+		margin-bottom: 0.5rem;
+		color: #0f172a;
+	}
+	.legal p {
+		color: #475569;
+		line-height: 1.75;
+		margin-bottom: 0.75rem;
+	}
+	.legal ul {
+		list-style: disc;
+		padding-left: 1.5rem;
+		margin-bottom: 0.75rem;
+		color: #475569;
+	}
+	.legal li {
+		line-height: 1.75;
+		margin-bottom: 0.25rem;
+	}
+	.legal strong {
+		color: #0f172a;
+		font-weight: 700;
+	}
+	.legal a {
+		color: #0f172a;
+		font-weight: 600;
+		text-decoration: underline;
+		text-underline-offset: 3px;
+	}
+	.legal em {
+		font-style: italic;
+		color: #64748b;
+	}
+</style>

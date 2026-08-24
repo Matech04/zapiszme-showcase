@@ -1,0 +1,52 @@
+---
+// Ramka telefonu (iPhone 14 Pro Max, zbudowana w CSS — bez assetu). Zawartość ekranu
+// wstrzykujesz przez <slot/> (wideo, iframe, obraz). `class` dodaje np. szerokość/rotację.
+interface Props {
+  class?: string;
+  /** Lekki obrót 3D jak w hero. Domyślnie płasko (dla osadzonego demo). */
+  tilt?: boolean;
+}
+const { class: className = "", tilt = false } = Astro.props;
+const tiltStyle = tilt
+  ? "transform:perspective(1200px) rotateY(-10deg) rotateX(4deg); transform-style:preserve-3d"
+  : "";
+---
+
+<div class={`relative ${className}`} style={tiltStyle}>
+  <!-- obudowa -->
+  <div
+    class="relative overflow-hidden rounded-[3rem] border-[10px] border-slate-800 dark:border-slate-700 bg-black shadow-[30px_60px_120px_-10px_rgba(0,0,0,0.6)] ring-1 ring-white/10"
+  >
+    <!-- Dynamic Island -->
+    <div
+      class="pointer-events-none absolute left-1/2 top-3 z-10 h-7 w-28 -translate-x-1/2 rounded-full bg-black"
+    >
+    </div>
+    <slot />
+  </div>
+  <!-- power (prawo) -->
+  <div
+    class="absolute -right-[7px] top-28 h-16 w-[5px] rounded-r-full bg-slate-700 dark:bg-slate-600"
+  >
+  </div>
+  <!-- silent switch (lewo) -->
+  <div
+    class="absolute -left-[7px] top-20 h-7 w-[5px] rounded-l-full bg-slate-700 dark:bg-slate-600"
+  >
+  </div>
+  <!-- volume up (lewo) -->
+  <div
+    class="absolute -left-[7px] top-32 h-12 w-[5px] rounded-l-full bg-slate-700 dark:bg-slate-600"
+  >
+  </div>
+  <!-- volume down (lewo) -->
+  <div
+    class="absolute -left-[7px] top-48 h-12 w-[5px] rounded-l-full bg-slate-700 dark:bg-slate-600"
+  >
+  </div>
+  <!-- blask pod telefonem -->
+  <div
+    class="absolute -bottom-8 left-1/2 h-14 w-56 -translate-x-1/2 rounded-full bg-brand-500/25 blur-3xl"
+  >
+  </div>
+</div>

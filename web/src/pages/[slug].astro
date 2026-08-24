@@ -1,0 +1,29 @@
+---
+import '../styles/global.css';
+import BookingEntry from '../components/booking/BookingEntry.svelte';
+import Analytics from '../components/Analytics.astro';
+
+// Jedna strona generowana w /_app/ — tę samą odpowiedź dla dowolnej ścieżki
+// serwuje Caddy (plik: web/caddyfile) dla trafień, które nie są plikami.
+// Astro dev nie używa tego fallbacku, więc seedowane slugi wystawiamy też jawnie.
+export const prerender = true;
+export function getStaticPaths() {
+  return [{ params: { slug: '_app' } }];
+}
+---
+
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <title>Rezerwacja</title>
+    <Analytics />
+  </head>
+  <body class="min-h-dvh overflow-x-hidden bg-[var(--booking-bg)] text-slate-950 dark:text-slate-100 antialiased">
+    <BookingEntry client:only="svelte" />
+  </body>
+</html>

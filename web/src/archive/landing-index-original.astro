@@ -1,0 +1,759 @@
+---
+// Archiwum: pełna strona marketingowa sprzed fazy testów. Aby przywrócić główną stronę, przenieś tę zawartość do `src/pages/index.astro` (lub scal z aktualną wersją).
+export const prerender = true;
+
+import "../styles/global.css";
+
+const dashboardUrl =
+  import.meta.env.PUBLIC_DASHBOARD_URL ?? "https://admin.zapisz.me";
+const registerUrl = `${dashboardUrl}/register`;
+
+const navItems = [
+  { href: "#funkcje", label: "Funkcje" },
+  { href: "#jak-dziala", label: "Jak działa" },
+  { href: "#cennik", label: "Cennik" },
+  { href: "#dla-kogo", label: "Dla kogo" },
+  { href: "#strona", label: "Własna strona" },
+];
+
+const heroStats = [
+  { value: "14 dni", label: "trial bez karty" },
+  { value: "uzupełnianie", label: "luk w grafiku" },
+  { value: "prywatny", label: "link, nie marketplace" },
+];
+
+const featureCards = [
+  {
+    title: "Publiczna rezerwacja",
+    description:
+      "Klient wybiera usługę, pracownika, termin i potwierdza wizytę bez telefonu do recepcji.",
+  },
+  {
+    title: "Grafik zespołu",
+    description:
+      "Właściciel i pracownicy widzą wizyty, dostępność, urlopy oraz zmiany w jednym panelu.",
+  },
+  {
+    title: "Whitelist klientów",
+    description:
+      "Włącz tryb prywatny i przyjmuj rezerwacje wyłącznie od osób, którym sam udostępnisz link. Zero publicznego listingu.",
+  },
+  {
+    title: "Potwierdzenia e-mail i SMS",
+    description:
+      "E-mail działa od pierwszego dnia. SMS uruchamiasz po podpięciu karty — płacisz tylko za wysłane wiadomości (~0,19 zł/SMS).",
+  },
+  {
+    title: "Klient bez hasła",
+    description:
+      "Klienci potwierdzają rezerwację kodem z SMS-a — bez zakładania konta i bez haseł do zapamiętania. Zero tarcia od pierwszego zapisu.",
+  },
+  {
+    title: "Wypełnianie luk w grafiku",
+    description:
+      "System sugeruje klientom terminy bezpośrednio przed lub po istniejących wizytach. Koniec z martwymi przerwami między umówieniami.",
+  },
+];
+
+const steps = [
+  {
+    number: "01",
+    title: "Udostępniasz link",
+    description:
+      "Na Instagramie, stronie, w Google Business Profile albo bezpośrednio zaufanym klientom.",
+  },
+  {
+    number: "02",
+    title: "Klient wybiera termin",
+    description:
+      "System pokazuje tylko realnie dostępne sloty zgodne z grafikiem i usługą.",
+  },
+  {
+    number: "03",
+    title: "Zespół pracuje spokojniej",
+    description:
+      "Wizyty trafiają do panelu, a pracownicy widzą aktualny plan dnia.",
+  },
+];
+
+const pricingPlans = [
+  {
+    name: "Trial",
+    kicker: "14 dni",
+    price: "0 zł",
+    priceNote: "bez karty",
+    description:
+      "Przez 14 dni testujesz pełną wersję aplikacji — bez podpinania karty.",
+    items: [
+      "pełny dostęp przez 14 dni",
+      "konfiguracja usług, grafiku i linku",
+      "potwierdzenia e-mail",
+      "whitelist klientów",
+    ],
+    cta: "Rozpocznij trial",
+    href: registerUrl,
+    featured: false,
+  },
+  {
+    name: "Free Solo",
+    kicker: "Darmowe konto",
+    price: "0 zł",
+    priceNote: "na zawsze",
+    description:
+      "Dla jednoosobowego salonu, który chce przyjmować podstawowe zapisy online.",
+    items: [
+      "1 właściciel / 1 pracownik",
+      "do 50 rezerwacji miesięcznie",
+      "potwierdzenia e-mail",
+      "branding zapisz.me",
+    ],
+    cta: "Zacznij jako Solo",
+    href: registerUrl,
+    featured: true,
+  },
+  {
+    name: "Salon Pro",
+    kicker: "Pełny dostęp",
+    price: "79 zł",
+    priceNote: "/ miesiąc",
+    description:
+      "Dla salonów z zespołem, nielimitowanymi rezerwacjami i potrzebą pełnej automatyzacji.",
+    items: [
+      "nielimitowane rezerwacje",
+      "wielu pracowników",
+      "SMS pay-as-you-go (~0,19 zł/SMS)",
+      "priorytetowe wsparcie",
+    ],
+    cta: "Zacznij trial",
+    href: registerUrl,
+    featured: false,
+  },
+];
+
+const audiences = [
+  "Barber shopy",
+  "Salony fryzjerskie",
+  "Gabinety beauty",
+  "Kosmetyczki i stylistki paznokci",
+  "Usługi lokalne na termin",
+  "Praca bez publicznego listingu",
+];
+---
+
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <meta
+      name="description"
+      content="zapisz.me to system rezerwacji online dla salonów beauty, barberów i usług lokalnych. Prywatny link rezerwacji — tylko twoi klienci, bez marketplace."
+    />
+    <title>zapisz.me — rezerwacje online dla salonów</title>
+  </head>
+  <body class="min-h-dvh bg-[#f8f3ec] text-slate-950 antialiased">
+    <div class="pointer-events-none fixed inset-0 overflow-hidden">
+      <div
+        class="absolute -left-24 top-20 h-72 w-72 rounded-full bg-amber-200/50 blur-3xl"
+      >
+      </div>
+      <div
+        class="absolute right-0 top-0 h-96 w-96 rounded-full bg-slate-900/10 blur-3xl"
+      >
+      </div>
+      <div
+        class="absolute bottom-0 left-1/3 h-80 w-80 rounded-full bg-orange-200/40 blur-3xl"
+      >
+      </div>
+    </div>
+
+    <div
+      class="relative mx-auto flex min-h-dvh max-w-7xl flex-col px-5 py-5 sm:px-8 lg:px-10"
+    >
+      <header
+        class="flex items-center justify-between rounded-full border border-white/70 bg-white/70 px-5 py-3 shadow-sm backdrop-blur"
+      >
+        <a href="/" class="flex items-center gap-3" aria-label="zapisz.me">
+          <span
+            class="grid size-9 place-items-center rounded-full bg-slate-950 text-sm font-black text-white"
+            >z</span
+          >
+          <span class="text-lg font-black tracking-tight text-slate-950"
+            >zapisz.me</span
+          >
+        </a>
+        <nav
+          class="hidden items-center gap-6 text-sm font-medium text-slate-700 lg:flex"
+          aria-label="Główna nawigacja"
+        >
+          {
+            navItems.map((item) => (
+              <a class="transition hover:text-slate-950" href={item.href}>
+                {item.label}
+              </a>
+            ))
+          }
+        </nav>
+        <a
+          href={registerUrl}
+          class="rounded-full bg-slate-950 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-800"
+        >
+          Załóż konto
+        </a>
+      </header>
+
+      <main class="flex-1">
+        <section
+          class="grid items-center gap-12 py-16 md:py-24 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16"
+        >
+          <div>
+            <p
+              class="mb-5 inline-flex rounded-full border border-slate-200 bg-white/80 px-4 py-2 text-sm font-bold text-slate-700 shadow-sm"
+            >
+              14 dni testu bez karty. Prywatny link — nie marketplace.
+            </p>
+            <h1
+              class="max-w-4xl text-5xl font-black tracking-tight text-slate-950 sm:text-6xl lg:text-7xl"
+            >
+              Mniej telefonów. Więcej zapisanych wizyt.
+            </h1>
+            <p
+              class="mt-6 max-w-2xl text-lg leading-8 text-slate-700 sm:text-xl"
+            >
+              zapisz.me daje biznesom prywatny link do rezerwacji — udostępniasz
+              go sam, bez wystawiania się w publicznym marketplace. Klienci
+              umawiają wizyty 24/7, a ty masz grafik w jednym miejscu.
+            </p>
+            <div class="mt-9 flex flex-col gap-3 sm:flex-row">
+              <a
+                href={registerUrl}
+                class="rounded-full bg-slate-950 px-7 py-4 text-center text-base font-bold text-white shadow-lg shadow-slate-900/15 transition hover:-translate-y-0.5 hover:bg-slate-800"
+              >
+                Rozpocznij 14 dni za darmo
+              </a>
+              <a
+                href="#cennik"
+                class="rounded-full border border-slate-300 bg-white/70 px-7 py-4 text-center text-base font-bold text-slate-950 transition hover:-translate-y-0.5 hover:bg-white"
+              >
+                Zobacz cennik
+              </a>
+            </div>
+            <div
+              class="mt-10 grid max-w-2xl grid-cols-3 gap-3 text-center sm:gap-4"
+            >
+              {
+                heroStats.map((stat) => (
+                  <div class="rounded-3xl border border-white/80 bg-white/70 p-4 shadow-sm">
+                    <p class="text-2xl font-black">{stat.value}</p>
+                    <p class="mt-1 text-xs font-semibold text-slate-600">
+                      {stat.label}
+                    </p>
+                  </div>
+                ))
+              }
+            </div>
+          </div>
+
+          <div class="relative">
+            <div
+              class="absolute -inset-4 rounded-[2.5rem] bg-slate-950/10 blur-2xl"
+            >
+            </div>
+            <div
+              class="relative overflow-hidden rounded-4xl border border-white/80 bg-white p-5 shadow-2xl shadow-slate-900/10"
+            >
+              <div class="rounded-3xl bg-slate-950 p-5 text-white">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <p class="text-sm text-white/60">Panel salonu</p>
+                    <p class="text-xl font-black">Dzisiejszy grafik</p>
+                  </div>
+                  <span
+                    class="rounded-full bg-emerald-400/15 px-3 py-1 text-xs font-bold text-emerald-200"
+                    >Online</span
+                  >
+                </div>
+                <div class="mt-6 space-y-3">
+                  <div class="rounded-2xl bg-white/10 p-4">
+                    <div class="flex items-center justify-between gap-4">
+                      <div>
+                        <p class="font-bold">10:00 · Strzyżenie</p>
+                        <p class="mt-1 text-sm text-white/60">
+                          Michał · Bartek
+                        </p>
+                      </div>
+                      <span
+                        class="rounded-full bg-amber-300 px-3 py-1 text-xs font-black text-slate-950"
+                        >Potwierdzona</span
+                      >
+                    </div>
+                  </div>
+                  <div class="rounded-2xl bg-white p-4 text-slate-950">
+                    <div class="flex items-center justify-between gap-4">
+                      <div>
+                        <p class="font-bold">11:30 · Koloryzacja</p>
+                        <p class="mt-1 text-sm text-slate-500">Kasia · Ola</p>
+                      </div>
+                      <span
+                        class="rounded-full bg-slate-100 px-3 py-1 text-xs font-black"
+                        >Nowa</span
+                      >
+                    </div>
+                  </div>
+                  <div class="rounded-2xl bg-white/10 p-4">
+                    <div class="flex items-center justify-between gap-4">
+                      <div>
+                        <p class="font-bold">13:00 · Broda</p>
+                        <p class="mt-1 text-sm text-white/60">Adam · Bartek</p>
+                      </div>
+                      <span
+                        class="rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-white/75"
+                        >W toku</span
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-5 rounded-3xl bg-amber-50 p-5">
+                <p class="text-sm font-bold text-slate-500">
+                  Twój link dla klientów
+                </p>
+                <div
+                  class="mt-3 flex items-center justify-between gap-3 rounded-2xl bg-white p-4"
+                >
+                  <span class="truncate font-bold">zapisz.me/twoj-salon</span>
+                  <span
+                    class="rounded-full bg-slate-950 px-3 py-1 text-xs font-bold text-white"
+                    >Udostępnij</span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="funkcje" class="py-10 md:py-16">
+          <div class="max-w-3xl">
+            <p
+              class="text-sm font-black uppercase tracking-[0.2em] text-amber-700"
+            >
+              Funkcje
+            </p>
+            <h2 class="mt-3 text-4xl font-black tracking-tight sm:text-5xl">
+              Wszystko, czego potrzebuje salon do zapisów online.
+            </h2>
+          </div>
+          <div class="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {
+              featureCards.map((feature) => (
+                <article class="rounded-4xl border border-white/80 bg-white/75 p-7 shadow-sm">
+                  <h3 class="text-xl font-black">{feature.title}</h3>
+                  <p class="mt-3 leading-7 text-slate-600">
+                    {feature.description}
+                  </p>
+                </article>
+              ))
+            }
+          </div>
+        </section>
+
+        <section id="jak-dziala" class="py-10 md:py-16">
+          <div
+            class="rounded-[2.5rem] bg-slate-950 p-7 text-white sm:p-10 lg:p-12"
+          >
+            <div class="grid gap-10 lg:grid-cols-[0.8fr_1.2fr]">
+              <div>
+                <p
+                  class="text-sm font-black uppercase tracking-[0.2em] text-amber-300"
+                >
+                  Jak działa
+                </p>
+                <h2 class="mt-3 text-4xl font-black tracking-tight sm:text-5xl">
+                  Od linku do wizyty w kilku krokach.
+                </h2>
+              </div>
+              <div class="grid gap-4 sm:grid-cols-3">
+                {
+                  steps.map((step) => (
+                    <div class="rounded-3xl bg-white/10 p-5">
+                      <p class="text-3xl font-black text-amber-300">
+                        {step.number}
+                      </p>
+                      <h3 class="mt-5 font-black">{step.title}</h3>
+                      <p class="mt-3 text-sm leading-6 text-white/65">
+                        {step.description}
+                      </p>
+                    </div>
+                  ))
+                }
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="demo" class="py-10 md:py-16">
+          <div
+            class="flex flex-col gap-6 md:flex-row md:items-end md:justify-between"
+          >
+            <div class="max-w-3xl">
+              <p
+                class="text-sm font-black uppercase tracking-[0.2em] text-amber-700"
+              >
+                Demo
+              </p>
+              <h2 class="mt-3 text-4xl font-black tracking-tight sm:text-5xl">
+                Zobacz produkt z dwóch perspektyw.
+              </h2>
+              <p class="mt-5 text-lg leading-8 text-slate-600">
+                Panel salonu dla właściciela i publiczny kalendarz rezerwacji
+                widoczny dla klientów.
+              </p>
+            </div>
+            <div class="flex flex-col gap-3 sm:flex-row">
+              <a
+                href="#demo-dashboard"
+                class="rounded-full bg-slate-950 px-6 py-3 text-center text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-slate-800"
+              >
+                Panel salonu
+              </a>
+              <a
+                href="/demo-kalendarz"
+                class="rounded-full border border-slate-300 bg-white/75 px-6 py-3 text-center text-sm font-bold text-slate-950 transition hover:-translate-y-0.5 hover:bg-white"
+              >
+                Kalendarz klienta
+              </a>
+            </div>
+          </div>
+
+          <div class="mt-10 grid gap-5 lg:grid-cols-2">
+            <article
+              id="demo-dashboard"
+              class="overflow-hidden rounded-4xl border border-white/80 bg-white shadow-sm"
+            >
+              <div class="border-b border-slate-100 px-6 py-4">
+                <p class="text-sm font-bold text-slate-500">
+                  Panel właściciela
+                </p>
+                <h3 class="text-2xl font-black">Grafik i wizyty</h3>
+              </div>
+              <div class="grid gap-4 p-6 sm:grid-cols-[0.8fr_1.2fr]">
+                <div class="rounded-3xl bg-slate-950 p-4 text-white">
+                  <p class="text-sm text-white/60">Dzisiaj</p>
+                  <p class="mt-2 text-4xl font-black">18</p>
+                  <p class="text-sm text-white/60">zaplanowanych wizyt</p>
+                  <div class="mt-6 space-y-2 text-sm">
+                    <p class="rounded-2xl bg-white/10 px-4 py-3">
+                      4 nowe rezerwacje
+                    </p>
+                    <p class="rounded-2xl bg-white/10 px-4 py-3">
+                      2 pracowników na zmianie
+                    </p>
+                    <p class="rounded-2xl bg-white/10 px-4 py-3">
+                      1 wolny slot po 16:00
+                    </p>
+                  </div>
+                </div>
+                <div class="space-y-3">
+                  <div class="rounded-3xl bg-slate-50 p-4">
+                    <div class="flex items-center justify-between">
+                      <p class="font-black">10:00</p>
+                      <span
+                        class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-700"
+                        >Potwierdzona</span
+                      >
+                    </div>
+                    <p class="mt-2 font-bold">Strzyżenie męskie · Bartek</p>
+                    <p class="text-sm text-slate-500">Klient: Michał Nowak</p>
+                  </div>
+                  <div class="rounded-3xl bg-amber-50 p-4">
+                    <div class="flex items-center justify-between">
+                      <p class="font-black">11:30</p>
+                      <span
+                        class="rounded-full bg-amber-200 px-3 py-1 text-xs font-black text-amber-900"
+                        >Nowa</span
+                      >
+                    </div>
+                    <p class="mt-2 font-bold">Koloryzacja · Ola</p>
+                    <p class="text-sm text-slate-500">
+                      Klient: Kasia Zielińska
+                    </p>
+                  </div>
+                  <a
+                    href={registerUrl}
+                    class="inline-flex rounded-full bg-slate-950 px-5 py-3 text-sm font-bold text-white transition hover:bg-slate-800"
+                  >
+                    Załóż konto i sprawdź panel
+                  </a>
+                </div>
+              </div>
+            </article>
+
+            <article
+              id="demo-kalendarz"
+              class="overflow-hidden rounded-4xl border border-white/80 bg-white shadow-sm"
+            >
+              <div class="border-b border-slate-100 px-6 py-4">
+                <p class="text-sm font-bold text-slate-500">Widok klienta</p>
+                <h3 class="text-2xl font-black">Publiczna rezerwacja wizyty</h3>
+              </div>
+              <div class="p-6">
+                <div class="rounded-3xl bg-[#f8f3ec] p-5">
+                  <div class="flex items-center justify-between gap-4">
+                    <div>
+                      <p class="text-sm font-bold text-slate-500">
+                        zapisz.me/twoj-salon
+                      </p>
+                      <p class="text-xl font-black">Wybierz termin</p>
+                    </div>
+                    <span
+                      class="rounded-full bg-white px-3 py-1 text-xs font-black"
+                      >Krok 2/4</span
+                    >
+                  </div>
+                  <div class="mt-5 grid grid-cols-4 gap-2 text-center text-sm">
+                    <p class="rounded-2xl bg-white p-3 font-bold">
+                      Pn<br /><span class="text-slate-500">6</span>
+                    </p>
+                    <p
+                      class="rounded-2xl bg-slate-950 p-3 font-bold text-white"
+                    >
+                      Wt<br /><span class="text-white/70">7</span>
+                    </p>
+                    <p class="rounded-2xl bg-white p-3 font-bold">
+                      Śr<br /><span class="text-slate-500">8</span>
+                    </p>
+                    <p class="rounded-2xl bg-white p-3 font-bold">
+                      Cz<br /><span class="text-slate-500">9</span>
+                    </p>
+                  </div>
+                  <div class="mt-5 grid grid-cols-3 gap-2 text-sm font-bold">
+                    <p class="rounded-full bg-white px-4 py-3 text-center">
+                      10:00
+                    </p>
+                    <p
+                      class="rounded-full bg-slate-950 px-4 py-3 text-center text-white"
+                    >
+                      11:30
+                    </p>
+                    <p class="rounded-full bg-white px-4 py-3 text-center">
+                      14:00
+                    </p>
+                  </div>
+                  <div class="mt-5 rounded-2xl bg-white p-4">
+                    <p class="font-black">Strzyżenie + broda</p>
+                    <p class="mt-1 text-sm text-slate-500">
+                      60 min · 120 zł · Bartek
+                    </p>
+                  </div>
+                </div>
+                <a
+                  href="/demo-kalendarz"
+                  class="mt-5 inline-flex rounded-full bg-slate-950 px-5 py-3 text-sm font-bold text-white transition hover:bg-slate-800"
+                >
+                  Otwórz interaktywne demo
+                </a>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section id="cennik" class="py-10 md:py-16">
+          <div class="max-w-3xl">
+            <p
+              class="text-sm font-black uppercase tracking-[0.2em] text-amber-700"
+            >
+              Cennik
+            </p>
+            <h2 class="mt-3 text-4xl font-black tracking-tight sm:text-5xl">
+              Startujesz za darmo, płacisz dopiero gdy potrzebujesz więcej.
+            </h2>
+            <p class="mt-5 text-lg leading-8 text-slate-600">
+              Trial i Free Solo są jasne od pierwszego wejścia. Salon Pro za 79
+              zł/mies. zdejmuje limity, odblokowuje zespół i SMS pay-as-you-go.
+            </p>
+          </div>
+          <div class="mt-10 grid gap-5 lg:grid-cols-3">
+            {
+              pricingPlans.map((plan) => (
+                <article
+                  class:list={[
+                    "relative rounded-4xl p-7 shadow-sm",
+                    plan.featured
+                      ? "border border-slate-950 bg-slate-950 text-white shadow-xl shadow-slate-900/15"
+                      : "border border-white/80 bg-white/75",
+                  ]}
+                >
+                  {plan.featured && (
+                    <span class="absolute right-6 top-6 rounded-full bg-amber-300 px-3 py-1 text-xs font-black text-slate-950">
+                      Po trialu
+                    </span>
+                  )}
+                  <p
+                    class:list={[
+                      "text-sm font-black uppercase tracking-[0.18em]",
+                      plan.featured ? "text-amber-200" : "text-slate-500",
+                    ]}
+                  >
+                    {plan.kicker}
+                  </p>
+                  <h3 class="mt-3 text-2xl font-black">{plan.name}</h3>
+                  <p class="mt-4 leading-7 opacity-75">{plan.description}</p>
+                  <p class="mt-5 text-4xl font-black">
+                    {plan.price}
+                    <span
+                      class:list={[
+                        "text-base font-bold",
+                        plan.featured ? "text-white/55" : "text-slate-500",
+                      ]}
+                    >
+                      {" "}
+                      {plan.priceNote}
+                    </span>
+                  </p>
+                  <ul
+                    class:list={[
+                      "mt-6 space-y-3 text-sm font-semibold",
+                      plan.featured ? "text-white/70" : "text-slate-600",
+                    ]}
+                  >
+                    {plan.items.map((item) => (
+                      <li>{item}</li>
+                    ))}
+                  </ul>
+                  <a
+                    href={plan.href}
+                    class:list={[
+                      "mt-7 inline-flex w-full justify-center rounded-full px-5 py-3 font-bold transition",
+                      plan.featured
+                        ? "bg-white text-slate-950 hover:bg-amber-100"
+                        : "border border-slate-300 bg-white text-slate-950 hover:bg-slate-50",
+                    ]}
+                  >
+                    {plan.cta}
+                  </a>
+                </article>
+              ))
+            }
+          </div>
+        </section>
+
+        <section id="dla-kogo" class="grid gap-8 py-10 md:py-16 lg:grid-cols-2">
+          <div>
+            <p
+              class="text-sm font-black uppercase tracking-[0.2em] text-amber-700"
+            >
+              Dla kogo
+            </p>
+            <h2 class="mt-3 text-4xl font-black tracking-tight sm:text-5xl">
+              Dla salonów, które przyjmują na termin — niezależnie od tego, czy
+              chcą być widoczne publicznie.
+            </h2>
+          </div>
+          <div class="grid gap-3 sm:grid-cols-2">
+            {
+              audiences.map((audience) => (
+                <p class="rounded-3xl bg-white/75 p-5 font-bold shadow-sm">
+                  {audience}
+                </p>
+              ))
+            }
+          </div>
+        </section>
+
+        <section id="strona" class="py-10 md:py-16">
+          <div
+            class="grid gap-8 rounded-[2.5rem] border border-white/80 bg-white/80 p-8 shadow-sm sm:p-12 lg:grid-cols-2"
+          >
+            <div>
+              <p
+                class="text-sm font-black uppercase tracking-[0.2em] text-amber-700"
+              >
+                Usługa dodatkowa
+              </p>
+              <h2 class="mt-3 text-4xl font-black tracking-tight sm:text-5xl">
+                Własna strona salonu z rezerwacją pod twoją domeną.
+              </h2>
+              <p class="mt-5 text-lg leading-8 text-slate-600">
+                Zbudujemy autorską stronę internetową twojego salonu, z
+                formularzem rezerwacji działającym bezpośrednio pod twoją
+                domeną. Klienci rezerwują na <strong>twojej stronie</strong> — my
+                obsługujemy resztę.
+              </p>
+            </div>
+            <div class="flex flex-col justify-between gap-6">
+              <ul class="space-y-3 text-sm font-semibold text-slate-600">
+                <li>projekt dostosowany do identyfikacji twojego salonu</li>
+                <li>formularz rezerwacji zapisz.me wbudowany w stronę</li>
+                <li>własna domena klienta (np. booking.twojsalon.pl)</li>
+                <li>wycena indywidualna — napisz, opiszemy szczegóły</li>
+              </ul>
+              <a
+                href="mailto:kontakt@zapisz.me?subject=Własna strona salonu"
+                class="inline-flex w-full justify-center rounded-full border border-slate-300 bg-white px-7 py-4 text-base font-bold text-slate-950 transition hover:bg-slate-50"
+              >
+                Zapytaj o wycenę
+              </a>
+            </div>
+          </div>
+        </section>
+
+        <section class="py-10 md:py-16">
+          <div
+            class="flex flex-col items-center gap-6 rounded-[2.5rem] bg-slate-950 px-8 py-12 text-center text-white sm:px-12"
+          >
+            <p
+              class="text-sm font-black uppercase tracking-[0.2em] text-amber-300"
+            >
+              Zacznij teraz
+            </p>
+            <h2
+              class="max-w-2xl text-4xl font-black tracking-tight sm:text-5xl"
+            >
+              14 dni za darmo. Bez karty.
+            </h2>
+            <p class="max-w-xl text-lg leading-8 text-white/70">
+              Skonfiguruj salon, wklej link na Instagramie i sprawdź jak wygląda
+              pierwszy tydzień bez telefonów.
+            </p>
+            <div class="flex flex-col gap-3 sm:flex-row">
+              <a
+                href={registerUrl}
+                class="rounded-full bg-white px-8 py-4 text-base font-bold text-slate-950 shadow-lg transition hover:-translate-y-0.5 hover:bg-amber-100"
+              >
+                Załóż konto salonu
+              </a>
+              <a
+                href="mailto:kontakt@zapisz.me"
+                class="rounded-full border border-white/25 px-8 py-4 text-base font-bold text-white transition hover:border-white/50 hover:bg-white/10"
+              >
+                Zapytaj o pomoc
+              </a>
+            </div>
+            <p class="text-sm text-white/50">
+              Bez karty na start. Free Solo pozostaje darmowy na zawsze.
+            </p>
+          </div>
+        </section>
+      </main>
+
+      <footer
+        class="flex flex-col gap-3 border-t border-slate-950/10 py-8 text-sm text-slate-600 sm:flex-row sm:items-center sm:justify-between"
+      >
+        <p>© 2026 zapisz.me. Rezerwacje online dla salonów.</p>
+        <div class="flex flex-wrap gap-4">
+          <a class="hover:text-slate-950" href="/regulamin">Regulamin</a>
+          <a class="hover:text-slate-950" href="/polityka-prywatnosci"
+            >Polityka prywatności</a
+          >
+          <a class="font-bold text-slate-950" href="mailto:kontakt@zapisz.me"
+            >kontakt@zapisz.me</a
+          >
+        </div>
+      </footer>
+    </div>
+  </body>
+</html>

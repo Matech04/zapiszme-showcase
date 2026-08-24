@@ -1,0 +1,8 @@
+<svg viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg">
+  <!-- Monochromatyczny badge Web Push (Android maskuje po alpha): biały glif na przezroczystym tle -->
+  <rect x="14" y="19" width="44" height="39" rx="7" fill="none" stroke="#ffffff" stroke-width="5"/>
+  <line x1="14" y1="31" x2="58" y2="31" stroke="#ffffff" stroke-width="5"/>
+  <rect x="24" y="11" width="5" height="12" rx="2.5" fill="#ffffff"/>
+  <rect x="43" y="11" width="5" height="12" rx="2.5" fill="#ffffff"/>
+  <path d="M27 43 L33 49 L46 37" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

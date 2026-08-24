@@ -1,0 +1,12 @@
+# gitleaks — allowlist trafień znanych jako nieszkodliwe.
+#
+# To repozytorium jest snapshotem (pojedynczy commit), więc fingerprinty z historii
+# repo prywatnego (format commit:plik:reguła:linia) nie mają tu zastosowania — zostały
+# usunięte. Poniżej opisane są miejsca, w których gitleaks potrafi trafić na atrapy:
+#
+#   a) OwnershipAndAccountIntegrationTests.cs — test negatywny confirm-change-email;
+#      "token" to base64url("invalid-token"), celowo błędny. Asercja oczekuje 400 BadRequest.
+#   b) ProductionConfigIntrospectionTests.cs — atrapa klucza VAPID w harnessie testowym.
+#
+# Żadne z nich nie jest żywym sekretem. Jeśli po pierwszym przebiegu CI gitleaks je zgłosi,
+# dopisz tutaj fingerprinty z jego raportu (będą miały SHA commita z TEGO repo).

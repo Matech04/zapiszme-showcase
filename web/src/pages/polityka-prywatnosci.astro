@@ -1,0 +1,313 @@
+---
+export const prerender = true;
+import '../styles/global.css';
+import Analytics from '../components/Analytics.astro';
+import ThemeInit from '../components/ThemeInit.astro';
+import ThemeToggle from '../components/ThemeToggle.astro';
+
+const updated = '26 czerwca 2026';
+---
+
+<!doctype html>
+<html lang="pl">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="icon" href="/favicon.ico" sizes="32x32" />
+		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Polityka prywatności — zapisz.me</title>
+		<meta name="robots" content="noindex" />
+		<Analytics />
+		<ThemeInit />
+	</head>
+	<body class="min-h-dvh bg-[#f8f3ec] dark:bg-[#181427] text-slate-950 dark:text-slate-100 antialiased">
+		<div class="mx-auto max-w-3xl px-5 py-10 sm:px-8">
+			<header class="mb-10 flex items-center justify-between">
+				<a href="/" class="flex items-center gap-3" aria-label="zapisz.me">
+					<img src="/logo-light.svg" alt="" class="size-9 dark:hidden" />
+					<img src="/favicon.svg" alt="" class="hidden size-9 dark:block" />
+					<span class="text-lg font-black tracking-tight">zapisz.me</span>
+				</a>
+				<div class="flex items-center gap-2">
+					<ThemeToggle />
+					<a href="/" class="text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white">← Strona główna</a>
+				</div>
+			</header>
+
+			<main class="rounded-3xl border border-white/80 dark:border-white/10 bg-white/80 dark:bg-white/5 px-8 py-10 shadow-sm sm:px-12">
+				<p class="text-sm font-bold uppercase tracking-widest text-amber-700 dark:text-brand-300">Dokument prawny</p>
+				<h1 class="mt-3 text-4xl font-black tracking-tight">Polityka prywatności</h1>
+				<p class="mt-3 text-sm text-slate-500 dark:text-slate-400">Ostatnia aktualizacja: {updated}</p>
+
+				<div class="legal">
+
+					<h2>1. Administrator danych osobowych</h2>
+					<p>Administratorem danych osobowych przetwarzanych w związku z korzystaniem z serwisu <strong>zapisz.me</strong> jest <strong>Geko Monika Chodacka</strong>, ul. Czyżykowa 7, 65-502 Zielona Góra, NIP: 9291665156 (dalej: „Administrator").</p>
+					<p>Kontakt w sprawach ochrony danych: <a href="mailto:kontakt@zapisz.me">kontakt@zapisz.me</a></p>
+
+					<h2>2. Dwie role w przetwarzaniu danych</h2>
+					<p>Serwis obsługuje dwa odrębne konteksty przetwarzania danych:</p>
+					<ul>
+						<li><strong>Konta salonów (właściciele i pracownicy)</strong> — Administrator przetwarza dane właścicieli salonów i pracowników jako administrator danych (ADO) w celu świadczenia usługi.</li>
+						<li><strong>Klienci salonów (rezerwujący wizyty)</strong> — dane osób rezerwujących wizyty są wprowadzane do systemu przez właściciela salonu. W tym zakresie Administrator działa jako podmiot przetwarzający (procesor) na zlecenie właściciela salonu, który jest ADO wobec swoich klientów. Właściciel salonu ponosi odpowiedzialność za poinformowanie swoich klientów o przetwarzaniu ich danych.</li>
+					</ul>
+
+					<h2>3. Jakie dane zbieramy i w jakim celu</h2>
+
+					<h3>3.1 Konta salonów — właściciele i pracownicy</h3>
+					<div class="legal-table"><table>
+						<thead>
+							<tr>
+								<th>Kategoria danych</th>
+								<th>Cel</th>
+								<th>Podstawa prawna (RODO)</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td>Adres e-mail, hasło (skrót kryptograficzny)</td>
+								<td>Uwierzytelnienie, dostęp do konta</td>
+								<td>art. 6 ust. 1 lit. b — wykonanie umowy</td>
+							</tr>
+							<tr>
+								<td>Imię, nazwisko, numer telefonu</td>
+								<td>Identyfikacja w systemie, kontakt</td>
+								<td>art. 6 ust. 1 lit. b — wykonanie umowy</td>
+							</tr>
+							<tr>
+								<td>Dane rozliczeniowe (obsługiwane przez Stripe)</td>
+								<td>Realizacja płatności za subskrypcję</td>
+								<td>art. 6 ust. 1 lit. b — wykonanie umowy</td>
+							</tr>
+							<tr>
+								<td>Adres IP, logi aktywności</td>
+								<td>Bezpieczeństwo systemu, wykrywanie nadużyć</td>
+								<td>art. 6 ust. 1 lit. f — prawnie uzasadniony interes</td>
+							</tr>
+						</tbody>
+					</table></div>
+
+					<h3>3.2 Klienci salonów — rezerwujący wizyty</h3>
+					<div class="legal-table"><table>
+						<thead>
+							<tr>
+								<th>Kategoria danych</th>
+								<th>Cel</th>
+								<th>Podstawa prawna</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td>Imię, numer telefonu</td>
+								<td>Identyfikacja rezerwującego, weryfikacja OTP</td>
+								<td>art. 6 ust. 1 lit. b — wykonanie umowy (rezerwacja wizyty)</td>
+							</tr>
+							<tr>
+								<td>Adres e-mail (opcjonalnie)</td>
+								<td>Potwierdzenie rezerwacji</td>
+								<td>art. 6 ust. 1 lit. b — wykonanie umowy</td>
+							</tr>
+							<tr>
+								<td>Historia wizyt</td>
+								<td>Obsługa konta klienta w salonie</td>
+								<td>art. 6 ust. 1 lit. b — wykonanie umowy</td>
+							</tr>
+							<tr>
+								<td>Dane kliknięcia w link do zapłaty zadatku (data i godzina otwarcia linku, typ urządzenia, system operacyjny)</td>
+								<td>
+									Doręczenie linku do zapłaty zadatku SMS-em. Wiadomość zawierająca odnośnik jest wysyłana
+									przez skracacz <strong>idz.do</strong>, prowadzony przez SMSAPI (ComVision sp. z o.o.).
+									Każdy odbiorca otrzymuje indywidualny odnośnik, co pozwala dostawcy odnotować jego otwarcie.
+									Nie używamy tych danych do profilowania ani marketingu.
+								</td>
+								<td>art. 6 ust. 1 lit. f — uzasadniony interes (potwierdzenie doręczenia i skuteczności linku płatniczego)</td>
+							</tr>
+						</tbody>
+					</table></div>
+					<p>Administrator nie przetwarza szczególnych kategorii danych (danych wrażliwych) w rozumieniu art. 9 RODO.</p>
+
+					<h2>4. Czas przechowywania danych</h2>
+					<ul>
+						<li>Dane konta salonu — przez czas trwania umowy oraz 3 lata po jej rozwiązaniu (cel: roszczenia).</li>
+						<li>Dane rozliczeniowe i faktury — 5 lat od końca roku podatkowego (obowiązek prawny).</li>
+						<li>Dane klientów salonu (rezerwacje) — przez czas utrzymywania konta przez właściciela salonu lub do czasu żądania usunięcia.</li>
+						<li>
+							Indywidualne odnośniki do zapłaty zadatku wraz z danymi ich otwarcia — do 30 dni od wysłania,
+							po czym są usuwane przez dostawcę (SMSAPI). Dane te przechowuje wyłącznie dostawca; w razie
+							żądania usunięcia danych usuwamy je niezwłocznie z naszych systemów, natomiast u dostawcy
+							wygasają one w tym 30-dniowym terminie.
+						</li>
+						<li>Logi techniczne — do 90 dni.</li>
+					</ul>
+
+					<h2>5. Odbiorcy danych — podmioty przetwarzające</h2>
+					<p>Dane mogą być przekazywane następującym podmiotom przetwarzającym na podstawie umów powierzenia przetwarzania danych:</p>
+					<div class="legal-table"><table>
+						<thead>
+							<tr>
+								<th>Podmiot</th>
+								<th>Rola</th>
+								<th>Kraj / Region</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td><strong>Stripe Payments Europe, Ltd.</strong></td>
+								<td>Obsługa płatności i subskrypcji</td>
+								<td>Irlandia (UE)</td>
+							</tr>
+							<tr>
+								<td><strong>Microsoft Azure Communication Services</strong></td>
+								<td>Wysyłka e-maili transakcyjnych i OTP</td>
+								<td>UE</td>
+							</tr>
+							<tr>
+								<td><strong>SMSAPI (ComVision sp. z o.o.)</strong></td>
+								<td>
+									Wysyłka wiadomości SMS i kodów OTP. Dodatkowo skracanie odnośników do zapłaty zadatku
+									(usługa idz.do) — dostawca odnotowuje otwarcie indywidualnego odnośnika przez odbiorcę.
+								</td>
+								<td>Polska (UE)</td>
+							</tr>
+							<tr>
+								<td><strong>Hetzner Online GmbH</strong></td>
+								<td>Hosting serwerów i bazy danych</td>
+								<td>Niemcy (UE)</td>
+							</tr>
+							<tr>
+								<td><strong>Cloudflare, Inc. (Cloudflare R2)</strong></td>
+								<td>Przechowywanie zdjęć (media) oraz szyfrowanych kopii zapasowych bazy danych</td>
+								<td>UE (bucket w jurysdykcji EU)</td>
+							</tr>
+						</tbody>
+					</table></div>
+					<p>Dane są przechowywane na terenie Europejskiego Obszaru Gospodarczego. W przypadku podmiotów przetwarzających należących do grup kapitałowych z siedzibą poza EOG (Stripe, Cloudflare) ewentualne przekazanie danych odbywa się wyłącznie na podstawie umowy powierzenia (DPA) oraz standardowych klauzul umownych (SCC) zatwierdzonych przez Komisję Europejską, przy zachowaniu lokalizacji danych w UE.</p>
+
+					<h2>6. Pliki cookies i analityka</h2>
+					<p>Strona główna <strong>zapisz.me</strong> korzysta z narzędzia Umami Analytics — rozwiązania analitycznego nieużywającego plików cookies i niegromadzącego danych osobowych odwiedzających. Analityka oparta jest wyłącznie na zanonimizowanych danych sesji.</p>
+					<p>Panel administracyjny (<em>admin.zapisz.me</em>) używa technicznych plików cookie sesji niezbędnych do utrzymania zalogowanej sesji użytkownika (HttpOnly, Secure). Podstawą prawną jest art. 6 ust. 1 lit. b RODO — wykonanie umowy.</p>
+					<p>Serwis nie używa cookies reklamowych, śledzących ani cookies podmiotów trzecich.</p>
+					<p>
+						Powyższe dotyczy plików cookies. Niezależnie od nich, odnośnik do zapłaty zadatku wysyłany SMS-em
+						jest indywidualny dla odbiorcy i jego otwarcie jest odnotowywane przez dostawcę usługi SMS —
+						szczegóły opisano w sekcji 3.2 oraz 5.
+					</p>
+
+					<h2>7. Prawa osób, których dane dotyczą</h2>
+					<p>Każdej osobie, której dane przetwarza Administrator, przysługuje prawo do:</p>
+					<ul>
+						<li><strong>dostępu</strong> do swoich danych (art. 15 RODO),</li>
+						<li><strong>sprostowania</strong> danych niedokładnych lub niekompletnych (art. 16 RODO),</li>
+						<li><strong>usunięcia</strong> danych w zakresie dozwolonym prawem (art. 17 RODO),</li>
+						<li><strong>ograniczenia przetwarzania</strong> (art. 18 RODO),</li>
+						<li><strong>przenoszenia danych</strong> (art. 20 RODO),</li>
+						<li><strong>sprzeciwu</strong> wobec przetwarzania opartego na uzasadnionym interesie (art. 21 RODO),</li>
+						<li><strong>wniesienia skargi</strong> do Prezesa Urzędu Ochrony Danych Osobowych (ul. Stawki 2, 00-193 Warszawa).</li>
+					</ul>
+					<p>Żądania należy kierować na adres: <a href="mailto:kontakt@zapisz.me">kontakt@zapisz.me</a>. Administrator odpowie w terminie 30 dni.</p>
+					<p><strong>Uwaga dla klientów salonów:</strong> jeśli jesteś klientem salonu korzystającego z zapisz.me i chcesz skorzystać z praw dotyczących twoich danych rezerwacyjnych, skontaktuj się bezpośrednio z salonem — to właściciel salonu jest administratorem twoich danych w zakresie wizyt.</p>
+
+					<h2>8. Bezpieczeństwo danych</h2>
+					<p>Administrator stosuje odpowiednie środki techniczne i organizacyjne w celu ochrony danych, w tym:</p>
+					<ul>
+						<li>szyfrowanie połączeń (HTTPS/TLS),</li>
+						<li>przechowywanie haseł wyłącznie w formie skrótu kryptograficznego (bcrypt),</li>
+						<li>ograniczenie dostępu do bazy danych wyłącznie do autoryzowanych komponentów systemu,</li>
+						<li>ochronę przed atakami CSRF i rate limiting na endpointach uwierzytelniania.</li>
+					</ul>
+					<p>Dane kart płatniczych nie są przechowywane przez Administratora — są przetwarzane wyłącznie przez Stripe zgodnie z certyfikatem PCI DSS.</p>
+
+					<h2>9. Zmiany polityki prywatności</h2>
+					<p>Administrator zastrzega sobie prawo do aktualizacji niniejszej Polityki. O istotnych zmianach Użytkownicy posiadający konta zostaną poinformowani drogą e-mailową. Aktualna wersja jest zawsze dostępna pod adresem <a href="/polityka-prywatnosci">zapisz.me/polityka-prywatnosci</a>.</p>
+					<p>Polityka wchodzi w życie z dniem {updated}.</p>
+
+				</div>
+			</main>
+
+			<footer class="mt-8 flex flex-col gap-2 text-center text-sm text-slate-500 dark:text-slate-400 sm:flex-row sm:justify-between">
+				<p>© 2026 zapisz.me</p>
+				<div class="flex justify-center gap-4">
+					<a href="/regulamin" class="hover:text-slate-950 dark:hover:text-white">Regulamin</a>
+					<a href="/polityka-prywatnosci" class="font-semibold text-slate-950 dark:text-slate-100">Polityka prywatności</a>
+					<a href="mailto:kontakt@zapisz.me" class="hover:text-slate-950 dark:hover:text-white">kontakt@zapisz.me</a>
+				</div>
+			</footer>
+		</div>
+	</body>
+</html>
+
+<style>
+	.legal h2 {
+		font-size: 1.125rem;
+		font-weight: 900;
+		margin-top: 2rem;
+		margin-bottom: 0.5rem;
+		color: #0f172a;
+	}
+	.legal h3 {
+		font-size: 0.9375rem;
+		font-weight: 700;
+		margin-top: 1.25rem;
+		margin-bottom: 0.4rem;
+		color: #1e293b;
+	}
+	.legal p {
+		color: #475569;
+		line-height: 1.75;
+		margin-bottom: 0.75rem;
+	}
+	.legal ul {
+		list-style: disc;
+		padding-left: 1.5rem;
+		margin-bottom: 0.75rem;
+		color: #475569;
+	}
+	.legal li {
+		line-height: 1.75;
+		margin-bottom: 0.25rem;
+	}
+	.legal strong {
+		color: #0f172a;
+		font-weight: 700;
+	}
+	.legal a {
+		color: #0f172a;
+		font-weight: 600;
+		text-decoration: underline;
+		text-underline-offset: 3px;
+	}
+	/* Owijka tabel — na wąskim mobile tabela przewija się poziomo zamiast
+	   wypychać layout (intrinsic min-width 3 kolumn > szerokość ekranu @320px). */
+	.legal-table {
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
+		margin-bottom: 1rem;
+	}
+	.legal table {
+		width: 100%;
+		border-collapse: collapse;
+		margin-bottom: 1rem;
+		font-size: 0.875rem;
+	}
+	.legal-table table {
+		margin-bottom: 0;
+	}
+	.legal th {
+		background: #f8fafc;
+		padding: 0.5rem 0.75rem;
+		text-align: left;
+		font-weight: 700;
+		color: #0f172a;
+		border: 1px solid #e2e8f0;
+	}
+	.legal td {
+		padding: 0.5rem 0.75rem;
+		color: #475569;
+		border: 1px solid #e2e8f0;
+		line-height: 1.5;
+	}
+	.legal tr:nth-child(even) td {
+		background: #f8fafc;
+	}
+</style>

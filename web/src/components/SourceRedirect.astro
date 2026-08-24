@@ -1,0 +1,23 @@
+---
+// Strona-przekierowanie do śledzenia źródeł ruchu w Umami.
+// Umami rejestruje wejście na np. /ig, a potem użytkownik trafia na /.
+import Analytics from "./Analytics.astro";
+
+interface Props {
+  to?: string;
+}
+
+const { to = "/" } = Astro.props;
+---
+
+<html lang="pl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="robots" content="noindex, nofollow" />
+    <Analytics />
+    <script define:vars={{ to }}>
+      window.location.replace(to);
+    </script>
+  </head>
+  <body></body>
+</html>

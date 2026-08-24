@@ -1,0 +1,47 @@
+# Serwer statyków panelu (obraz caddy:2-alpine, root = /srv z dist/client-angular/browser).
+#
+# Cache-Control jest tu KRYTYCZNY, nie kosmetyczny. Bez niego przeglądarka stosuje cache
+# heurystyczny (~10% czasu od `Last-Modified`), więc im dawniej był deploy, tym dłużej telefon
+# trzyma stary build bez pytania serwera. Dla zainstalowanej PWA to dwie awarie naraz:
+#
+#  • `ngsw.json` — to po niego Angular Service Worker sięga, żeby wykryć nową wersję. Zacache'owany
+#    = SW NIE MA JAK zauważyć aktualizacji i aplikacja stoi na starym buildzie tygodniami.
+#  • `index.html` — stary shell wskazuje na hashe chunków, których po nowym buildzie nie ma już na
+#    serwerze. Panel ładuje wszystkie trasy leniwie, więc sypie się nie od razu, tylko przy wejściu
+#    w konkretny ekran.
+#
+# Bookingowi naprawiono to w `web/caddyfile` (commit 4fd17c9d, „koniec utykania na starym
+# buildzie") — panel został wtedy pominięty, mimo że to on jest instalowany jako PWA.
+#
+# Reguła: zamrażamy WYŁĄCZNIE to, co ma hash w nazwie. Wszystko inne rewaliduje się przy każdym
+# wejściu. Dobór jest celowo zachowawczy — plik nierozpoznany trafia do `no-cache`, czyli w
+# najgorszym razie kosztuje jedno 304, a nie zabetonowaną aplikację.
+:80 {
+	root * /srv
+	encode gzip zstd
+
+	# Angular dokleja 8-znakowy hash do nazwy (`main-UON5APTI.js`, `chunk-2DG43KVR.js`,
+	# `styles-JBFPB6BZ.css`). Zmiana treści = zmiana URL-a, więc rok + `immutable` jest bezpieczny.
+	# Wzorzec celowo wymaga WIELKICH liter — chroni `ngsw-worker.js`, `safety-worker.js` i
+	# `worker-basic.min.js`, które hasha nie mają i zamrożone zablokowałyby aktualizacje na zawsze.
+	@hashed path_regexp \-[A-Z0-9]{8}\.(js|css)$
+	handle @hashed {
+		header Cache-Control "public, max-age=31536000, immutable"
+		file_server
+	}
+
+	# Fonty i ikony PrimeIcons — Angular hashuje je tak samo (`primeicons-4GST5W3O.woff2`).
+	handle /media/* {
+		header Cache-Control "public, max-age=31536000, immutable"
+		file_server
+	}
+
+	# Reszta: `index.html`, `ngsw.json`, `ngsw-worker.js`, `manifest.webmanifest`, `icons/*`,
+	# favikony. Nazwy są stałe, więc jedyną drogą do nowej treści jest rewalidacja.
+	# `no-cache` = wolno trzymać kopię, ale trzeba spytać serwer; z ETagiem to tanie 304.
+	handle {
+		header Cache-Control "no-cache"
+		try_files {path} /index.html
+		file_server
+	}
+}

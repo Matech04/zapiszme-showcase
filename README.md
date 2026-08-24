@@ -2,9 +2,9 @@
 
 > A production, multi-tenant booking platform I designed and built end-to-end:
 > a public online-booking experience for clients and a full management panel for
-> salon owners. This repository is a **curated case study** — architecture,
-> engineering decisions and representative code — not a dump of the private
-> monorepo.
+> salon owners. This repository holds **both**: a guided case study of the
+> architecture and the decisions behind it, and the **complete source code** it
+> describes. Read the case study first — it is the map. The code is the territory.
 
 <p>
   <img alt=".NET 10" src="https://img.shields.io/badge/.NET-10-512BD4">
@@ -28,6 +28,37 @@
 > visitor**, seeds it with realistic salon data (services, clients, appointments
 > around "today"), signs the guest in passwordless, and hard-deletes the tenant
 > after a TTL. See [Demo mode](code-highlights/03-demo-mode.md) for how that works.
+
+---
+
+## What's in this repository
+
+The case study and the source live together. If you only have five minutes, read
+the [engineering highlights](#engineering-highlights) and stop there.
+
+| Path | What it is |
+|---|---|
+| [`code-highlights/`](code-highlights/) | **Start here** — four annotated slices of the codebase with the reasoning behind them |
+| [`docs/architecture.md`](docs/architecture.md) | Architecture write-up with diagrams |
+| `backend/` | .NET 10 solution — `App.Domain`, `App.Application`, `App.Infrastructure`, `App.Api` + three test projects |
+| `dashboard/` | Angular 21 owner panel |
+| `web/` | Astro 6 + Svelte 5 public booking app |
+| `e2e/` | Playwright end-to-end suite |
+| [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | CI: unit tests, integration tests on real PostgreSQL, type-checks, compose validation, gitleaks scan |
+
+Scale, for context:
+
+| | |
+|---|---|
+| C# source files | ~1 000 |
+| Lines of C# | ~233 000 |
+| Automated tests | ~1 570 |
+| Backend projects | 5 source + 3 test |
+
+> **A note on history.** This is a squashed snapshot of a private production
+> repository. Deployment workflows, infrastructure credentials and internal
+> business documents are not included, and one client's identifying details were
+> replaced with neutral fixtures. Everything else is the real code.
 
 ---
 
@@ -181,6 +212,6 @@ For the real thing, the [live demo links](#try-it-live) above are one click away
 
 ---
 
-<sub>Source snippets in this repository are excerpts from a private production
-codebase, shared for evaluation. They are illustrative and not licensed for
-reuse.</sub>
+<sub>This repository contains the source of a live production codebase, published
+for evaluation and code review. See <a href="NOTICE">NOTICE</a>: source-available
+for inspection, not licensed for reuse.</sub>

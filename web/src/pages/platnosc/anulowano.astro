@@ -1,0 +1,27 @@
+---
+export const prerender = true;
+
+import "../../styles/global.css";
+import ThemeInit from "../../components/ThemeInit.astro";
+---
+
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Płatność anulowana — Zapisz.me</title>
+    <ThemeInit />
+  </head>
+  <body class="min-h-screen bg-[var(--bg)] text-[var(--fg)] flex items-center justify-center p-6">
+    <main class="w-full max-w-md text-center space-y-4">
+      <div class="mx-auto w-16 h-16 rounded-full bg-surface-100 text-surface-500 flex items-center justify-center text-3xl">✕</div>
+      <h1 class="text-xl font-black">Płatność anulowana</h1>
+      <p class="text-sm opacity-80">
+        Zadatek nie został pobrany. Jeśli chcesz dokończyć rezerwację, otwórz ponownie link
+        od salonu albo skontaktuj się z nim bezpośrednio.
+      </p>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,5 @@
+{
+  "//": "tsconfig dla bramki `astro check` w CI. Wyłącza pliki testowe: @astrojs/svelte typuje domyślny eksport .svelte jako funkcję-komponent Astro (PropsWithClientDirectives), przez co render() z @testing-library/svelte nigdy nie sklei się typami. Testy i tak są typowane/uruchamiane przez vitest. Reszta (źródła .astro/.svelte/.ts) jest sprawdzana.",
+  "extends": "./tsconfig.json",
+  "exclude": ["dist", "**/*.test.ts", "src/vitest-setup.ts", "vitest.config.ts"]
+}

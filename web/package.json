@@ -1,0 +1,39 @@
+{
+  "name": "web",
+  "type": "module",
+  "version": "0.0.1",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "astro dev --port 4351",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "check:astro": "astro check --tsconfig ./tsconfig.astro-check.json --minimumSeverity error",
+    "check:svelte": "svelte-check --tsconfig ./tsconfig.json --threshold error",
+    "check": "npm run check:astro && npm run check:svelte",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@astrojs/svelte": "^8.0.5",
+    "astro": "^6.3.7",
+    "svelte": "^5.55.9"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.9",
+    "@sveltejs/vite-plugin-svelte": "^6.2.4",
+    "@tailwindcss/vite": "^4.2.4",
+    "@testing-library/svelte": "^5.3.1",
+    "jsdom": "^26.1.0",
+    "svelte-check": "^4.6.0",
+    "tailwindcss": "^4.2.4",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.5"
+  },
+  "overrides": {
+    "ws": "^8.20.1",
+    "yaml": "^2.8.3"
+  }
+}

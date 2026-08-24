@@ -1,0 +1,129 @@
+# Rotacja logów kontenerów — domyślny driver json-file rośnie BEZ limitu, więc
+# crash-loopujący kontener potrafi zapchać dysk hosta. Limit: 10 MB × 5 plików
+# = max 50 MB na kontener.
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+services:
+  # EDGE ROUTER - Główna brama z SSL
+  caddy-proxy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    logging: *default-logging
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - saas-network
+
+  # BACKEND .NET 10
+  #
+  # Wszystkie sekrety i konfiguracje pochodzą z pliku /opt/zapiszme/.env, który jest
+  # generowany na każdy deploy przez .github/workflows/deploy.yml z GH Secrets + Variables.
+  # `.env` używa ASP.NET-style nazw (Turnstile__SecretKey itp.) żeby ten sam plik mógł być
+  # użyty zarówno przez `env_file:` (compose up) jak i `docker run --env-file` (migrate-step).
+  # NIE EDYTUJ .env ręcznie na serwerze — zostanie nadpisany przy kolejnym deployu.
+  api:
+    image: ghcr.io/matech04/zapiszme-api:${IMAGE_TAG:-latest}
+    restart: always
+    logging: *default-logging
+    env_file:
+      # required: false pozwala CI compose-validate przejść bez fizycznego .env.
+      # W prod deploy.yml na pewno wgrywa .env do /opt/zapiszme/ przed `compose up`.
+      - path: .env
+        required: false
+    environment:
+      # Nadpisania PONAD .env — wartości, które są stałe per-środowisko i nie muszą
+      # iść przez secrety.
+      - ASPNETCORE_ENVIRONMENT=Production
+      # Seq wyłączony — logi lecą do Console/File. SeqUrl puste w appsettings.json →
+      # sink Seq w Program.cs się NIE aktywuje (dodawany tylko gdy URL niepuste). NIE
+      # przywracaj `Serilog__SeqUrl` bez postawienia usługi seq — martwe URL = sink
+      # faila w tle przy każdym logu. (Monitoring → Grafana Cloud + Alloy.)
+      # Bez persystencji DataProtection keyringu każdy `compose up --force-recreate`
+      # (czyli każdy deploy) inwaliduje wszystkie tokeny Identity (confirm-email /
+      # password-reset / accept-invite) i ciasteczka Auth, bo keys leżą domyślnie
+      # w ulotnym /root/.aspnet/DataProtection-Keys/ wewnątrz kontenera.
+      - DataProtection__KeysPath=/var/dataprotection
+      # Szyfrowanie key ringu at-rest certyfikatem X509 (PFX). Ścieżka WEWNĄTRZ kontenera —
+      # plik montowany niżej z hosta. Hasło: DataProtection__CertificatePassword przez .env
+      # (sekret). Czyta to TYLKO prawdziwy prod; LOCAL_PROD pomija (ValidateProductionConfiguration).
+      - DataProtection__CertificatePath=/etc/dataprotection/cert.pfx
+      # Tryb demo bez logowania (efemeryczny tenant per-wizyta). Bezpieczny budżetowo:
+      # NotificationDispatcher wycisza e-mail/SMS dla tenantów IsDemo (zostaje in-app),
+      # /api/demo/start jest rate-limited (AuthSensitive), MaxLiveTenants=200 ogranicza
+      # liczbę żywych demo, a DemoTenantCleanupHostedService hard-deletuje je po TtlHours=24.
+      - Demo__Enabled=true
+    volumes:
+      - dataprotection_keys:/var/dataprotection
+      # PFX z hostem read-only. Host-path = zmienna: prod ustawia ją w .env na
+      # /opt/zapiszme/secrets/dataprotection.pfx (deploy.yml), a default /dev/null sprawia,
+      # że local-prod montuje nieszkodliwy pusty plik (i tak nieczytany przy LOCAL_PROD) —
+      # bez tworzenia śmieciowych katalogów na hoście dev.
+      - ${DATAPROTECTION_CERT_HOST_PATH:-/dev/null}:/etc/dataprotection/cert.pfx:ro
+    # Liveness (NIE /health/ready) — healthcheck Dockera ma odzwierciedlać "czy proces żyje",
+    # nie "czy DB odpowiada". Chwilowy blip DB nie powinien oznaczać kontenera jako unhealthy
+    # (restart: always i tak nie restartuje na unhealthy). Gotowość/migracje sprawdza deploy-step.
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - saas-network
+
+  # PANEL ADMINA (Angular + Caddy)
+  admin-panel:
+    image: ghcr.io/matech04/zapiszme-dashboard:${IMAGE_TAG:-latest}
+    restart: always
+    logging: *default-logging
+    networks:
+      - saas-network
+
+  # FRONTEND REZERWACJI (Astro + Caddy)
+  booking-app:
+    image: ghcr.io/matech04/zapiszme-web:${IMAGE_TAG:-latest}
+    restart: always
+    logging: *default-logging
+    networks:
+      - saas-network
+
+  # BAZA DANYCH POSTGRESQL
+  db:
+    image: postgres:16-alpine
+    restart: always
+    logging: *default-logging
+    environment:
+      - POSTGRES_DB=saas_db
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d saas_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - saas-network
+
+networks:
+  saas-network:
+    external: true
+
+volumes:
+  postgres_data:
+  caddy_data:
+  caddy_config:
+  dataprotection_keys:

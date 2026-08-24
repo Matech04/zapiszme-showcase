@@ -1,0 +1,105 @@
+@import 'tailwindcss';
+
+/* Dark mode sterowany klasą `.dark` na <html> (toggle + prefers-color-scheme),
+   nie samym media query — żeby działał ręczny przełącznik. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+  Akcent marki ("brand") = fiolet, używany w DARK mode (w light zostaje amber
+  z oryginału). Odcień steruje jedna liczba `--brand-h` (OKLCH hue):
+    293 = fiolet (logo)   310 = śliwka   328 = fuksja   275 = indygo
+*/
+:root {
+  --brand-h: 293;
+
+  /*
+    Zmienne motywu kalendarza rezerwacji (per salon — nadpisywane inline na <html>
+    przez BookingFlow). Domyślne = dotychczasowy wygląd, więc bez ustawień salonu nic
+    się nie zmienia. `bg` = kanwa wokół karty, `surface` = tło karty/paneli, `price` = cena.
+  */
+  --booking-bg: #f8f3ec;
+  --booking-surface: #ffffff;
+  --booking-price: #0f766e; /* teal-700 */
+
+  /*
+    Akcent na solidne wypełnienia (przyciski, zaznaczenia). Domyślnie = brand-700 (wynika z hue),
+    a salon nadpisuje `--accent` DOKŁADNYM kolorem inline na <html> — żeby np. złoto było złotem,
+    nie ciemnym stopniem palety. `--accent-contrast` to auto kolor tekstu na akcencie.
+  */
+  --accent: oklch(0.491 0.27 var(--brand-h));
+  --accent-strong: oklch(0.432 0.232 var(--brand-h));
+  --accent-contrast: #ffffff;
+}
+
+@theme {
+  --color-brand-50: oklch(0.969 0.016 var(--brand-h));
+  --color-brand-100: oklch(0.943 0.029 var(--brand-h));
+  --color-brand-200: oklch(0.894 0.057 var(--brand-h));
+  --color-brand-300: oklch(0.811 0.111 var(--brand-h));
+  --color-brand-400: oklch(0.702 0.183 var(--brand-h));
+  --color-brand-500: oklch(0.606 0.25 var(--brand-h));
+  --color-brand-600: oklch(0.541 0.281 var(--brand-h));
+  --color-brand-700: oklch(0.491 0.27 var(--brand-h));
+  --color-brand-800: oklch(0.432 0.232 var(--brand-h));
+  --color-brand-900: oklch(0.38 0.189 var(--brand-h));
+}
+
+/* Ciemne tło bazowe + natywne kontrolki/scrollbary w wersji dark. */
+.dark {
+  color-scheme: dark;
+
+  /* Domyślne wartości motywu kalendarza dla dark mode (gdy salon nie nadpisał). */
+  --booking-bg: #181427;
+  --booking-surface: #221c38;
+  --booking-price: #2dd4bf; /* teal-400 */
+}
+
+/*
+  ── Mobile overflow guard (defense in depth) ─────────────────────────────
+  Siatka bezpieczeństwa przeciw poziomemu overflow na mobile. Łapie większość
+  przypadków bez dotykania komponentów. UWAGA: `overflow-x: clip` to OSTATNIA
+  linia obrony — jeśli coś wystaje, popraw ŹRÓDŁO (sztywna szerokość, brak
+  `min-w-0` na dziecku flexa, nierozdzielny string), bo `clip` tylko ukryje
+  problem (np. przycięty przycisk). Egzekwowane automatycznie testem
+  e2e/specs/public-booking/no-overflow.spec.ts (viewport 320px).
+
+  `clip` zamiast `hidden`: nie tworzy scroll-containera, więc `position: sticky`
+  nadal działa. W @layer base, żeby utility Tailwinda (np. `overflow-x-auto`
+  na karuzeli dat) miały pierwszeństwo.
+*/
+@layer base {
+  html,
+  body {
+    max-width: 100%;
+    overflow-x: clip;
+  }
+
+  /* Media nigdy szersze niż kontener. */
+  img,
+  svg,
+  video,
+  canvas,
+  iframe {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Długie maile / URL-e / slugi / hasztagi łamią się zamiast wypychać layout. */
+  p,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  span,
+  a,
+  li,
+  dd,
+  dt,
+  td,
+  th,
+  blockquote {
+    overflow-wrap: break-word;
+  }
+}

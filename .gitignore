@@ -1,12 +1,90 @@
-# OS / editor cruft
+# .NET
+[Bb]in/
+[Oo]bj/
+# Niektóre toolchain-y (Roslyn MSBuildWorkspace via VS Code C# extension, niektóre
+# dotnet-ef scenariusze na Linux/Mac) tworzą folder o LITERAL nazwie "bin\Debug"
+# z backslash-em jako częścią nazwy. Wzorzec [Bb]in/ powyżej tego nie łapie, bo
+# to single-component name, nie hierarchia path-separator.
+# UWAGA: w .gitignore backslash to znak ucieczki — literalny "\" trzeba podwoić ("\\"),
+# inaczej "bin\Debug" jest czytane jako "binDebug" i NIE łapie realnego katalogu.
+**/bin\\Debug/
+**/bin\\Release/
+**/obj\\Debug/
+**/obj\\Release/
+.vs/
+*.user
+*.userprefs
+*.suo
+*.sln.docstates
+ncrunch.solution.user
+_ReSharper.Caches/
+.sass-cache/
+secrets.json
+
+# Lokalne override'y appsettings — np. backend/src/App.Api/appsettings.Development.local.json
+# trzyma SMSAPI__OAUTH_TOKEN, ACS connection string itp. NIGDY do gita.
+appsettings.*.local.json
+appsettings.local.json
+
+# DataProtection key ring — master keys (cookie Auth/antiforgery, tokeny reset-hasła,
+# podpis cookie impersonacji). NIGDY do gita: wyciek = możliwość sfałszowania sesji/tokenów.
+# Lokalnie generują się same; prod trzyma je w wolumenie /var/dataprotection (DataProtection:KeysPath).
+backend/src/App.Api/keys/
+keys/key-*.xml
+
+# Node.js
+node_modules/
+dist/
+build/
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+# Zaszyfrowane artefakty z fetch-local-env workflow (Makefile: pull-env)
+*.age
+# Root CA Caddy wyciągnięty z kontenera local-prod (do trust store hosta)
+caddy-local-root.crt
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 .DS_Store
+coverage/
+.vscode/
+
+# Raporty testów / skanów DAST (mogą zawierać ciasteczka, ścieżki)
+test-results/
+
+# Cert DataProtection (PFX) — master key cookie/antiforgery/impersonacja. NIGDY do gita (jak keys/ wyżej).
+*.pfx
+
+# Zrzuty bazy — zawierają dane osobowe klientów (RODO). NIGDY do gita.
+*.dump
+*.sql
+*.sql.gz
+
+# Katalogi narzędzi / efemeryczne worktree
+.playwright-mcp/
+.claude/worktrees/
+
+# Robocze screenshoty i materiały marketingowe (poza buildem aplikacji)
+*-check.png
+av2.png
+drawer.png
+mobile-*.png
+screens-preview.png
+logo-preview.png
+logo-drafts/
+instagram-demo.html
+web/public/post/
+web/public/Post1.png
+web/public/0525.mp4
+
+# --- z poprzedniej wersji repo showcase ---
 Thumbs.db
 *~
 .idea/
-.vscode/
-
-# Never commit anything that could carry secrets
 *.env
-.env*
 *.key
 *.pem

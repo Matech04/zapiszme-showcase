@@ -1,0 +1,28 @@
+---
+export const prerender = true;
+
+import DemoBookingCalendar from '../components/booking/DemoBookingCalendar.svelte';
+import '../styles/global.css';
+import Analytics from '../components/Analytics.astro';
+---
+
+<!doctype html>
+<html lang="pl">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="icon" href="/favicon.ico" sizes="32x32" />
+		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="generator" content={Astro.generator} />
+		<meta
+			name="description"
+			content="Interaktywne demo kalendarza zapisz.me, które nie tworzy realnych rezerwacji i działa na przykładowych danych."
+		/>
+		<title>Demo kalendarza — zapisz.me</title>
+		<Analytics />
+	</head>
+	<body class="min-h-dvh bg-[var(--booking-bg)] text-slate-950 dark:text-slate-100 antialiased">
+		<DemoBookingCalendar client:load />
+	</body>
+</html>

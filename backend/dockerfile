@@ -1,0 +1,42 @@
+# ==========================================
+# ETAP 1: BUDOWANIE (SDK .NET 10)
+# ==========================================
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+WORKDIR /src
+
+# 1. Kopiujemy pliki .csproj (cache warstw) — bez tests/; obraz buduje tylko App.Api
+COPY ["src/App.Api/App.Api.csproj", "src/App.Api/"]
+COPY ["src/App.Application/App.Application.csproj", "src/App.Application/"]
+COPY ["src/App.Domain/App.Domain.csproj", "src/App.Domain/"]
+COPY ["src/App.Infrastructure/App.Infrastructure.csproj", "src/App.Infrastructure/"]
+
+# 2. Restore tylko projektu API (grafo zależności do Application/Infrastructure/Domain).
+#    Nie używamy backend.slnx tutaj — slnx zawiera też testy, których jeszcze nie skopiowaliśmy.
+RUN dotnet restore "src/App.Api/App.Api.csproj"
+
+# 3. Reszta źródeł (w tym testy są ignorowane przez .dockerignore — nie trafiają do kontekstu)
+COPY . .
+
+# 4. Publikacja uruchomieniowa API
+WORKDIR "/src/src/App.Api"
+# SkipNSwagBuild: w obrazie generujemy tylko API; OpenAPI/klient TS w dev/CI, nie w runtime.
+RUN dotnet publish "App.Api.csproj" -c Release -o /app/publish /p:UseAppHost=false /p:SkipNSwagBuild=true
+
+# ==========================================
+# ETAP 2: PRODUKCJA (Lekki Runtime .NET 10)
+# ==========================================
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
+WORKDIR /app
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Aplikacje w .NET 8/9/10 domyślnie nasłuchują w kontenerach na porcie 8080
+EXPOSE 8080
+
+# Kopiujemy gotowe pliki z etapu budowania
+COPY --from=build /app/publish .
+
+# Uruchamiamy aplikację (upewnij się, że plik nazywa się App.Api.dll)
+ENTRYPOINT ["dotnet", "App.Api.dll"]

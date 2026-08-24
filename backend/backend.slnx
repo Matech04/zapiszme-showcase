@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/App.Api/App.Api.csproj" />
+    <Project Path="src/App.Api.E2eSupport/App.Api.E2eSupport.csproj" />
+    <Project Path="src/App.Application/App.Application.csproj" />
+    <Project Path="src/App.Domain/App.Domain.csproj" />
+    <Project Path="src/App.Infrastructure/App.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/App.Api.IntegrationTests/App.Api.IntegrationTests.csproj" />
+    <Project Path="tests/App.Application.UnitTests/App.Application.UnitTests.csproj" />
+    <Project Path="tests/App.Domain.UnitTests/App.Domain.UnitTests.csproj" />
+  </Folder>
+</Solution>

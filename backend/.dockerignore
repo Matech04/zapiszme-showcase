@@ -1,0 +1,9 @@
+**/.git/
+**/.vscode/
+**/bin/
+**/obj/
+**/appsettings.Development.json
+# Nie są potrzebne do publish API; mniejszy kontekst i szybszy `COPY . .`
+tests/
+# Błąd z Windows: folder o jednej nazwie "bin\Debug" (nie łapie go **/bin/)
+**/bin*Debug

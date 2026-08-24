@@ -1,0 +1,95 @@
+# Rotacja logów kontenerów — domyślny driver json-file rośnie BEZ limitu, więc
+# crash-loopujący kontener (np. Alloy po breaking-changu w `:latest`) potrafi
+# zapchać dysk hosta. Limit: 10 MB × 5 plików = max 50 MB na kontener.
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+services:
+  # METRYKI SERWERA (CPU, RAM, DISK) — lekki czujnik, ~30 MB RAM.
+  # Sam nic nie magazynuje; Alloy go odpytuje i wypycha do Grafana Cloud.
+  node-exporter:
+    image: prom/node-exporter:latest
+    restart: unless-stopped
+    logging: *default-logging
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - "--path.procfs=/host/proc"
+      - "--path.rootfs=/rootfs"
+      - "--path.sysfs=/host/sys"
+      - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)"
+    networks:
+      - saas-network
+
+  # METRYKI BAZY DANYCH (połączenia, query time, cache hit) — ~30 MB RAM.
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter
+    restart: unless-stopped
+    logging: *default-logging
+    environment:
+      # Rozbite na osobne zmienne — hasło (DATA_SOURCE_PASS) idzie surowo, bez
+      # parsowania URL, więc znaki specjalne (%, &, !) w haśle nie wywalają DSN.
+      - DATA_SOURCE_URI=db:5432/saas_db?sslmode=disable
+      - DATA_SOURCE_USER=admin
+      - DATA_SOURCE_PASS=${DB_PASSWORD}
+    networks:
+      - saas-network
+
+  # AGENT WYPYCHAJĄCY METRYKI + LOGI — Grafana Alloy, ~120 MB RAM.
+  # Odpytuje lokalne exportery (remote_write do Prometheus) ORAZ scrape'uje logi
+  # kontenerów z docker.sock (:ro) i wypycha je do Loki — wszystko do Grafana
+  # Cloud (Free). Nic nie trzyma lokalnie poza pozycją odczytu/WAL-em → minimalny ślad.
+  alloy:
+    image: grafana/alloy:latest
+    restart: unless-stopped
+    logging: *default-logging
+    command:
+      - run
+      - --storage.path=/var/lib/alloy/data
+      - /etc/alloy/config.alloy
+    environment:
+      - GRAFANA_CLOUD_PROM_URL=${GRAFANA_CLOUD_PROM_URL}
+      - GRAFANA_CLOUD_PROM_USER=${GRAFANA_CLOUD_PROM_USER}
+      - GRAFANA_CLOUD_PROM_TOKEN=${GRAFANA_CLOUD_PROM_TOKEN}
+      - GRAFANA_CLOUD_LOKI_URL=${GRAFANA_CLOUD_LOKI_URL}
+      - GRAFANA_CLOUD_LOKI_USER=${GRAFANA_CLOUD_LOKI_USER}
+      - GRAFANA_CLOUD_LOKI_TOKEN=${GRAFANA_CLOUD_LOKI_TOKEN}
+    volumes:
+      - ./config.alloy:/etc/alloy/config.alloy:ro
+      - alloy_data:/var/lib/alloy/data
+      # Read-only dostęp do Docker API — Alloy listuje kontenery i czyta ich logi.
+      # :ro ogranicza do operacji odczytu; mimo to socket = dostęp do hosta, więc
+      # trzymamy go tylko tu (agent monitoringu), nie w kontenerach aplikacyjnych.
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - saas-network
+
+  # METRYKI KONTENERÓW (cAdvisor) — DOMYŚLNIE WYŁĄCZONE (~180 MB RAM).
+  # Włącz doraźnie (`docker compose ... --profile heavy up -d`), gdy chcesz
+  # zobaczyć zużycie RAM/CPU per kontener. Na co dzień node + postgres wystarczą.
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    restart: unless-stopped
+    logging: *default-logging
+    profiles:
+      - heavy
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    networks:
+      - saas-network
+
+networks:
+  saas-network:
+    external: true
+
+volumes:
+  alloy_data:

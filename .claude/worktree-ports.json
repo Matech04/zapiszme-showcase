@@ -1,0 +1,25 @@
+{
+  "_next_backend": 5189,
+  "_next_dashboard": 4249,
+  "_next_web": 4369,
+  "main": {
+    "backend": 5141,
+    "dashboard": 4201,
+    "web": 4321
+  },
+  "BackendRefactor": {
+    "backend": 5155,
+    "dashboard": 4215,
+    "web": 4335
+  },
+  "onboarding": {
+    "backend": 5179,
+    "dashboard": 4239,
+    "web": 4359
+  },
+  "powiadomienia": {
+    "backend": 5180,
+    "dashboard": 4240,
+    "web": 4360
+  }
+}

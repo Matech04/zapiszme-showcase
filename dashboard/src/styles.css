@@ -1,0 +1,780 @@
+@import "tailwindcss";
+@import "tailwindcss-primeui";
+
+/* Tailwind v4: dark utilities only when `.dark` class exists. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Akcent marki ("brand") = fiolet, używany w DARK mode (w light zostaje amber
+ * z presetu). Spójne z public app (web/src/styles/global.css). Odcień steruje
+ * jedna liczba `--brand-h` (OKLCH hue): 293 = fiolet (logo).
+ */
+:root {
+  --brand-h: 293;
+}
+
+@theme {
+  --color-brand-50: oklch(0.969 0.016 var(--brand-h));
+  --color-brand-100: oklch(0.943 0.029 var(--brand-h));
+  --color-brand-200: oklch(0.894 0.057 var(--brand-h));
+  --color-brand-300: oklch(0.811 0.111 var(--brand-h));
+  --color-brand-400: oklch(0.702 0.183 var(--brand-h));
+  --color-brand-500: oklch(0.606 0.25 var(--brand-h));
+  --color-brand-600: oklch(0.541 0.281 var(--brand-h));
+  --color-brand-700: oklch(0.491 0.27 var(--brand-h));
+  --color-brand-800: oklch(0.432 0.232 var(--brand-h));
+  --color-brand-900: oklch(0.38 0.189 var(--brand-h));
+}
+
+/* Tailwind v4: scan Angular templates (inline `template:` in .ts and .html). Without this,
+   responsive utilities like `lg:hidden` on components may be missing from the build. */
+@source "./**/*.html";
+@source "./**/*.ts";
+
+/*
+ * Fallback for responsive “mobile only” chrome: Tailwind’s `lg:hidden` only works if those
+ * classes are present in the generated stylesheet. These plain CSS rules always apply.
+ * Breakpoint 1024px matches Tailwind’s default `lg`.
+ */
+@media (width >= 1024px) {
+  .admin-mobile-chrome-only {
+    display: none !important;
+  }
+
+  .admin-page-pad-for-bottom-nav {
+    padding-bottom: 2.5rem !important;
+  }
+}
+
+.admin-page-pad-for-bottom-nav {
+  padding-bottom: 7rem;
+}
+
+/*
+ * Otwarty dolny sheet/drawer → chowamy mobilny navbar. `body.admin-drawer-open`
+ * dokleja `BodyScrollLockService` (ref-licznik). Navbar to glass-card z
+ * `backdrop-filter`, który na iOS Safari malował się PONAD `position: fixed`
+ * drawerem PrimeNG i przykrywał jego stopkę (Anuluj / Zmień termin) — na
+ * Androidzie stacking był poprawny i navbar znikał pod drawerem. Schowanie go
+ * wprost wyrównuje zachowanie obu platform.
+ */
+body.admin-drawer-open app-mobile-nav {
+  display: none !important;
+}
+
+:root {
+  color-scheme: light;
+  /* Hard fallback for Prime/Tailwind tokens used by text-surface-* utilities. */
+  --p-surface-0: #ffffff;
+  --p-surface-50: #f8f3ec;
+  --p-surface-100: #f1f5f9;
+  --p-surface-200: #e2e8f0;
+  --p-surface-300: #cbd5e1;
+  --p-surface-400: #94a3b8;
+  --p-surface-500: #64748b;
+  --p-surface-600: #475569;
+  --p-surface-700: #334155;
+  --p-surface-800: #1e293b;
+  --p-surface-900: #0f172a;
+  --p-surface-950: #020617;
+  --p-text-color: #0f172a;
+  --p-content-color: #334155;
+}
+
+body {
+  min-height: 100dvh;
+  background:
+    radial-gradient(42rem 24rem at 8% -6%, rgb(251 191 36 / 0.2), transparent 62%),
+    radial-gradient(34rem 22rem at 92% 2%, rgb(15 23 42 / 0.12), transparent 60%),
+    radial-gradient(28rem 18rem at 50% 100%, rgb(251 146 60 / 0.12), transparent 64%),
+    #f8f3ec;
+  color: #0f172a;
+  font-feature-settings: "ss01" on, "cv02" on, "cv03" on;
+}
+
+.dark body {
+  background:
+    radial-gradient(42rem 24rem at 8% -6%, rgb(139 92 246 / 0.18), transparent 62%),
+    radial-gradient(34rem 22rem at 92% 2%, rgb(124 58 237 / 0.14), transparent 60%),
+    radial-gradient(28rem 18rem at 50% 100%, rgb(251 191 36 / 0.05), transparent 64%),
+    #181427;
+  color: #e7e2f0;
+}
+
+/* Ciepła, fioletowa rampa „dark" — odwzorowanie public app (web): głębokie
+   fioletowe tło zamiast zimnego slate. Skala odwrócona: surface-0 = baza
+   (najciemniej), surface-900 = tekst (biel). */
+.dark {
+  /* Natywne scrollbary + kontrolki ciemne (jak w public app/web). */
+  color-scheme: dark;
+  --p-surface-0: #181427;
+  --p-surface-50: #211b36;
+  --p-surface-100: #2a2342;
+  --p-surface-200: #3a3357;
+  /* surface-300/400 to muted-text tier w dark (text-surface-300/400 użyte
+     ~280×). Rozjaśnione do progu WCAG AA 4.5:1 na karcie (#211b36):
+     300 = 4.72:1, 400 = 5.51:1. Wcześniejsze #544d73/#7d7499 dawały 2.3/3.8. */
+  --p-surface-300: #8c84ad;
+  --p-surface-400: #9990b6;
+  --p-surface-500: #a59cc0;
+  --p-surface-600: #c5bedb;
+  --p-surface-700: #ded9ec;
+  --p-surface-800: #f1eef8;
+  --p-surface-900: #ffffff;
+  --p-surface-950: #0f0b1a;
+  --p-text-color: #f5f3fb;
+  --p-content-color: #cabfe0;
+
+  /* ============================================================
+   * Tokeny komponentów PrimeNG (Aura) złamane przez ODWRÓCONĄ rampę.
+   * Aura dark zakłada surface-0=jasny … surface-900=ciemny, więc używa
+   * surface-700/800/900 na TŁA (paneli/overlayów/hoverów) i surface-0 na
+   * TEKST. U nas rampa jest odwrócona (surface-900=biel) → tła wychodzą BIAŁE,
+   * a tekst CIEMNY. Remapujemy je na właściwą stronę (tła→ciemne elewacje
+   * surface-50/100/200, tekst→jasny surface-700/900). Bordery, mask i warianty
+   * `contrast` (celowo odwrotne) zostawiamy. Lista wygenerowana ze skanu
+   * @layer primeng — patrz [[project_dashboard_dark_ramp]].
+   * ============================================================ */
+  --p-button-outlined-plain-active-background: var(--p-surface-200);
+  --p-button-outlined-plain-color: var(--p-surface-900);
+  --p-button-outlined-plain-hover-background: var(--p-surface-100);
+  --p-button-secondary-active-background: var(--p-surface-300);
+  --p-button-secondary-active-color: var(--p-surface-700);
+  --p-button-secondary-background: var(--p-surface-100);
+  --p-button-secondary-hover-background: var(--p-surface-200);
+  --p-button-secondary-hover-color: var(--p-surface-400);
+  --p-button-text-plain-active-background: var(--p-surface-200);
+  --p-button-text-plain-color: var(--p-surface-900);
+  --p-button-text-plain-hover-background: var(--p-surface-100);
+  --p-button-text-secondary-active-background: var(--p-surface-200);
+  --p-button-text-secondary-hover-background: var(--p-surface-100);
+  --p-content-background: var(--p-surface-50);
+  --p-content-hover-background: var(--p-surface-100);
+  --p-datepicker-dropdown-active-background: var(--p-surface-300);
+  --p-datepicker-dropdown-active-color: var(--p-surface-700);
+  --p-datepicker-dropdown-background: var(--p-surface-100);
+  --p-datepicker-dropdown-hover-background: var(--p-surface-200);
+  --p-datepicker-dropdown-hover-color: var(--p-surface-400);
+  --p-datepicker-panel-background: var(--p-surface-50);
+  --p-datepicker-today-background: var(--p-surface-200);
+  --p-datepicker-today-color: var(--p-surface-900);
+  --p-dialog-background: var(--p-surface-50);
+  --p-drawer-background: var(--p-surface-50);
+  --p-form-field-disabled-background: var(--p-surface-200);
+  --p-form-field-filled-background: var(--p-surface-100);
+  --p-form-field-filled-focus-background: var(--p-surface-100);
+  --p-form-field-filled-hover-background: var(--p-surface-100);
+  --p-list-option-focus-background: var(--p-surface-100);
+  --p-navigation-item-active-background: var(--p-surface-100);
+  --p-navigation-item-focus-background: var(--p-surface-100);
+  --p-overlay-modal-background: var(--p-surface-50);
+  --p-overlay-popover-background: var(--p-surface-50);
+  --p-overlay-select-background: var(--p-surface-50);
+  --p-popover-background: var(--p-surface-50);
+  --p-select-overlay-background: var(--p-surface-50);
+  --p-toast-error-detail-color: var(--p-surface-900);
+  --p-toast-info-detail-color: var(--p-surface-900);
+  --p-toast-secondary-background: var(--p-surface-100);
+  --p-toast-secondary-close-button-hover-background: var(--p-surface-200);
+  --p-toast-secondary-detail-color: var(--p-surface-900);
+  --p-toast-success-detail-color: var(--p-surface-900);
+  --p-toast-warn-detail-color: var(--p-surface-900);
+  --p-tooltip-background: var(--p-surface-200);
+  --p-tooltip-color: var(--p-surface-900);
+  /* Kolory tekstu w stanach HOVER/FOCUS (nav, opcje list/select, datepicker) —
+     Aura daje surface-0 (ciemny) na jasny hover; u nas hover jest ciemny → jasny. */
+  --p-navigation-item-focus-color: var(--p-surface-900);
+  --p-navigation-item-active-color: var(--p-surface-900);
+  --p-list-option-focus-color: var(--p-surface-900);
+  --p-select-option-focus-color: var(--p-surface-900);
+  --p-content-hover-color: var(--p-surface-900);
+  --p-text-hover-color: var(--p-surface-900);
+  --p-datepicker-date-hover-color: var(--p-surface-900);
+  --p-datepicker-select-year-hover-color: var(--p-surface-900);
+  --p-datepicker-select-month-hover-color: var(--p-surface-900);
+}
+
+.admin-glass-card {
+  border: 1px solid rgb(255 255 255 / 0.72);
+  background: rgb(255 255 255 / 0.72);
+  color: #0f172a;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 18px 45px -24px rgb(15 23 42 / 0.35);
+}
+
+.dark .admin-glass-card {
+  border-color: rgb(255 255 255 / 0.1);
+  background: rgb(40 33 64 / 0.55);
+  color: #f3f0fa;
+}
+
+/* Popover centrum powiadomień. Celowo NIE używa .admin-glass-card: półprzezroczyste, rozmyte
+   tło było nieczytelne na tle kalendarza. Zostaje domyślne, solidne tło popovera (surface-50,
+   jak wszystkie inne overlaye). Strzałkę chowamy — szeroki panel na wąskim ekranie i tak jest
+   przesuwany w lewo, więc jej ostrze nie celowało w dzwonek i tylko myliło. */
+.notif-popover.p-popover::before,
+.notif-popover.p-popover::after {
+  display: none !important;
+}
+
+.admin-section-label {
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-weight: 800;
+  font-size: 0.7rem;
+}
+
+.admin-h2 {
+  font-size: clamp(1.25rem, 2vw, 1.6rem);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  font-weight: 800;
+}
+
+.admin-h3 {
+  font-size: 1.05rem;
+  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+}
+
+.admin-kpi-card {
+  border-radius: 1.5rem;
+  border: 1px solid rgb(255 255 255 / 0.72);
+  background: rgb(255 255 255 / 0.78);
+  padding: 1.1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  box-shadow: 0 12px 32px -22px rgb(15 23 42 / 0.35);
+}
+
+.dark .admin-kpi-card {
+  border-color: rgb(255 255 255 / 0.1);
+  background: rgb(40 33 64 / 0.55);
+}
+
+.admin-kpi-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: rgb(100 116 139);
+}
+
+.dark .admin-kpi-label {
+  color: rgb(166 158 192);
+}
+
+.admin-kpi-value {
+  font-size: clamp(1.5rem, 3vw, 2.1rem);
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+.admin-kpi-trend {
+  font-size: 0.72rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.admin-card {
+  border-radius: 1.5rem;
+  border: 1px solid rgb(255 255 255 / 0.72);
+  background: rgb(255 255 255 / 0.78);
+  padding: 1.25rem;
+  box-shadow: 0 14px 36px -26px rgb(15 23 42 / 0.35);
+}
+
+.dark .admin-card {
+  border-color: rgb(255 255 255 / 0.1);
+  background: rgb(40 33 64 / 0.55);
+}
+
+.admin-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 9999px;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  border: 1px solid rgb(148 163 184 / 0.3);
+  background: rgb(255 255 255 / 0.7);
+}
+
+.dark .admin-chip {
+  border-color: rgb(255 255 255 / 0.12);
+  background: rgb(46 39 71 / 0.6);
+  color: rgb(228 224 240);
+}
+
+.admin-divider {
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgb(148 163 184 / 0.3), transparent);
+  margin: 1rem 0;
+}
+
+/* A11y: globalny pierścień fokusu o lepszym kontraście (działa wraz z PrimeNG focus-ring). */
+:where(button, a, [tabindex]):focus-visible {
+  outline: 2px solid rgb(245 158 11 / 0.85);
+  outline-offset: 2px;
+  border-radius: 0.75rem;
+}
+
+.dark :where(button, a, [tabindex]):focus-visible {
+  /* Akcent marki w dark = fiolet (primary), nie amber. */
+  outline-color: color-mix(in srgb, var(--p-primary-color) 85%, transparent);
+}
+
+/* Animacja pulsacji dla skeletonów — łagodniejsza niż domyślna animate-pulse Tailwinda. */
+@keyframes admin-skeleton-shimmer {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
+.admin-skeleton {
+  background: linear-gradient(
+    90deg,
+    rgb(241 245 249) 0%,
+    rgb(226 232 240) 50%,
+    rgb(241 245 249) 100%
+  );
+  background-size: 200px 100%;
+  background-repeat: no-repeat;
+  animation: admin-skeleton-shimmer 1.4s ease-in-out infinite;
+  border-radius: 0.75rem;
+}
+
+.dark .admin-skeleton {
+  background: linear-gradient(
+    90deg,
+    rgb(42 35 66) 0%,
+    rgb(58 51 87) 50%,
+    rgb(42 35 66) 100%
+  );
+  background-size: 200px 100%;
+  background-repeat: no-repeat;
+}
+
+/* Mikrointerakcja: ostatnie wzmocnienie kontrastu drobnych etykiet. */
+.text-surface-500 {
+  color: rgb(82 92 109);
+}
+
+.dark .text-surface-500 {
+  color: rgb(172 162 196);
+}
+
+.admin-page-shell {
+  /* Uwaga: BEZ `min-height: 100%`. Shell nie jest jedynym dzieckiem scrollowanego <main> —
+     nad nim (w tym samym kontenerze) siedzą mobilny nagłówek chrome (h-18 + mb-3) i bannery.
+     `min-height: 100%` = 100% wysokości <main>, więc nagłówek NAD shellem dokładał swoją
+     wysokość ponad viewport → dało się scrollować „w pusto" nawet przy krótkiej treści
+     (mobile). Shell nie ma własnego tła (tło jest na layoutcie), więc pełna wysokość nie
+     dawała nic wizualnie — usunięta. */
+  /* Mobile (chrome < lg): bez bocznego paddingu — treść równej szerokości co górny
+     navbar i bannery (one są bezpośrednimi dziećmi <main>, bez własnego px). Boczny
+     margines daje wspólny gutter rodzica (p-3/p-4). Poziomy padding wraca dopiero na lg. */
+  padding: 1rem 0;
+}
+
+.admin-page-container {
+  max-width: 1600px;
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.admin-page-hero {
+  border-radius: 2rem;
+  padding: 1.75rem;
+}
+
+.admin-page-title {
+  font-size: clamp(2rem, 4vw, 3.25rem);
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  font-weight: 900;
+}
+
+.admin-page-lead {
+  max-width: 46rem;
+  line-height: 1.7;
+}
+
+.admin-hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.admin-meta-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border-radius: 9999px;
+  border: 1px solid rgb(148 163 184 / 0.25);
+  background: rgb(255 255 255 / 0.75);
+  padding: 0.45rem 0.8rem;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+.dark .admin-meta-pill {
+  border-color: rgb(255 255 255 / 0.12);
+  background: rgb(46 39 71 / 0.6);
+}
+
+@media (min-width: 640px) {
+  .admin-page-shell {
+    /* Tablet wciąż używa mobilnego chrome (navbar) → poziomy padding nadal 0. */
+    padding: 2rem 0;
+  }
+
+  .admin-page-hero {
+    padding: 2.3rem 2.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  /* Desktop (sidebar + top-bar): przywróć boczny gutter treści. */
+  .admin-page-shell {
+    padding: 2rem;
+  }
+}
+
+/* PrimeNG visual refresh aligned with landing page language. */
+.p-card,
+.p-datatable,
+.p-panel,
+.p-dialog .p-dialog-content {
+  border-radius: 1.25rem;
+}
+
+.p-button {
+  border-radius: 9999px;
+  font-weight: 700;
+}
+
+.p-inputtext,
+.p-select,
+.p-multiselect,
+.p-datepicker-input,
+.p-textarea {
+  border-radius: 0.9rem;
+}
+
+/* ============================================================
+ * AdminDrawer (app-admin-drawer) — scroll wewnątrz drawera
+ *
+ * PrimeNG v21 nie ma `contentStyleClass`, a domyślny `.p-drawer-content`
+ * (wrapper wokół naszej treści) ma własny `overflow-y:auto` i NIE jest
+ * flex-kolumną. Efekt: `flex-1` na naszym `<div drawer-body>` nie działa,
+ * a scroll łapie tylko wrapper PrimeNG przy krawędzi (dotyk w środku panelu
+ * — kalendarz, chipy — nie przewija). `admin-drawer-shell` to klasa-marker
+ * doklejana do `styleClass` (root `.p-drawer`). Robimy z root i content
+ * flex-kolumny, a scroll oddajemy WYŁĄCZNIE naszemu body.
+ * ============================================================ */
+.admin-drawer-shell.p-drawer {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.admin-drawer-shell .p-drawer-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
+}
+
+/* ============================================================
+ * Driver.js — przewodnik „Dostępność pracownika"
+ * Override domyślnego stylu, żeby pasował do reszty aplikacji
+ * (PrimeNG surfaces + Tailwind rounded-2xl + dark mode).
+ * Wszystko scoped pod `.zapisz-tour`, żeby nie wpływać na
+ * ewentualne future tour'y.
+ * ============================================================ */
+
+.driver-popover.zapisz-tour {
+  border-radius: 1.25rem; /* rounded-3xl-ish */
+  padding: 1.25rem 1.25rem 1rem;
+  min-width: 320px;
+  max-width: 380px;
+  background: var(--p-surface-0);
+  color: var(--p-text-color);
+  border: 1px solid var(--p-surface-200);
+  box-shadow:
+    0 25px 50px -12px rgb(15 23 42 / 0.25),
+    0 0 0 1px rgb(15 23 42 / 0.02);
+}
+
+.dark .driver-popover.zapisz-tour {
+  border-color: var(--p-surface-200);
+  box-shadow:
+    0 25px 50px -12px rgb(0 0 0 / 0.6),
+    0 0 0 1px rgb(255 255 255 / 0.04);
+}
+
+/* Wyrównujemy font tekstu popovera do appki, ale NIE ruszamy ikon: `.pi` musi zachować
+   font-family: 'primeicons' (inaczej blankietowy `inherit` wygrywa specyficznością nad regułą
+   PrimeIcons i ikony renderują się jako puste kwadraty/błędne znaki w tutorialu). */
+.driver-popover.zapisz-tour *:not(.pi) {
+  font-family: inherit;
+}
+
+.driver-popover.zapisz-tour .driver-popover-title {
+  font-size: 1.0625rem;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  color: var(--p-text-color);
+  padding-right: 1.75rem;
+  margin: 0 0 0.5rem;
+  line-height: 1.35;
+}
+
+.driver-popover.zapisz-tour .driver-popover-description {
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--p-content-color);
+  margin: 0;
+}
+
+.driver-popover.zapisz-tour .driver-popover-description strong {
+  color: var(--p-text-color);
+  font-weight: 700;
+}
+
+.driver-popover.zapisz-tour .driver-popover-description i.pi {
+  font-size: 0.8125rem;
+  vertical-align: middle;
+}
+
+.driver-popover.zapisz-tour .driver-popover-close-btn {
+  width: 1.75rem;
+  height: 1.75rem;
+  font-size: 1rem;
+  line-height: 1.75rem;
+  color: var(--p-surface-400);
+  border-radius: 50%;
+  top: 0.625rem;
+  right: 0.625rem;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.driver-popover.zapisz-tour .driver-popover-close-btn:hover,
+.driver-popover.zapisz-tour .driver-popover-close-btn:focus {
+  background: var(--p-surface-100);
+  color: var(--p-text-color);
+}
+
+.dark .driver-popover.zapisz-tour .driver-popover-close-btn:hover,
+.dark .driver-popover.zapisz-tour .driver-popover-close-btn:focus {
+  background: var(--p-surface-100);
+}
+
+.driver-popover.zapisz-tour .driver-popover-footer {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--p-surface-200);
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.driver-popover.zapisz-tour .driver-popover-progress-text {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--p-surface-500);
+  padding: 0.3rem 0.7rem;
+  background: var(--p-surface-100);
+  border-radius: 9999px;
+  line-height: 1;
+}
+
+.dark .driver-popover.zapisz-tour .driver-popover-progress-text {
+  background: var(--p-surface-100);
+  color: var(--p-surface-400);
+}
+
+.driver-popover.zapisz-tour .driver-popover-navigation-btns {
+  gap: 0.4rem;
+}
+
+.driver-popover.zapisz-tour .driver-popover-footer button {
+  padding: 0.5rem 1.05rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  background: transparent;
+  text-shadow: none;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+/* Fallbacks: PrimeNG Aura domyślnie nie ustawia --p-primary-color jako CSS variable na :root
+   (robi to dopiero DashboardThemeService po wyborze koloru przez usera). Bez fallbacka button
+   miałby przezroczyste tło i niewidoczny tekst. Hex zgodny z DASHBOARD_DEFAULT_PRIMARY_HEX.
+   Selektory używają `button.driver-popover-...` żeby wygrać specyfikę nad ogólnym
+   `.driver-popover-footer button` powyżej (3 klasy + element vs 3 klasy bez elementu). */
+.driver-popover.zapisz-tour button.driver-popover-next-btn {
+  background: var(--p-primary-color, #f59e0b);
+  color: var(--p-primary-contrast-color, #0f172a);
+  border-color: var(--p-primary-color, #f59e0b);
+}
+
+.driver-popover.zapisz-tour button.driver-popover-next-btn:hover,
+.driver-popover.zapisz-tour button.driver-popover-next-btn:focus {
+  background: var(--p-primary-hover-color, var(--p-primary-color, #d97706));
+  color: var(--p-primary-contrast-color, #0f172a);
+  filter: brightness(1.04);
+}
+
+.driver-popover.zapisz-tour button.driver-popover-prev-btn {
+  background: transparent;
+  color: var(--p-content-color);
+  border-color: var(--p-surface-300);
+}
+
+.driver-popover.zapisz-tour button.driver-popover-prev-btn:hover,
+.driver-popover.zapisz-tour button.driver-popover-prev-btn:focus {
+  background: var(--p-surface-100);
+  border-color: var(--p-surface-400);
+}
+
+.dark .driver-popover.zapisz-tour button.driver-popover-prev-btn:hover,
+.dark .driver-popover.zapisz-tour button.driver-popover-prev-btn:focus {
+  background: var(--p-surface-100);
+}
+
+.driver-popover.zapisz-tour .driver-popover-btn-disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* Arrow — kolor pasujący do tła popovera (light/dark). */
+.driver-popover.zapisz-tour .driver-popover-arrow {
+  border-width: 7px;
+}
+
+.driver-popover.zapisz-tour .driver-popover-arrow-side-left {
+  border-left-color: var(--p-surface-0);
+}
+.driver-popover.zapisz-tour .driver-popover-arrow-side-right {
+  border-right-color: var(--p-surface-0);
+}
+.driver-popover.zapisz-tour .driver-popover-arrow-side-top {
+  border-top-color: var(--p-surface-0);
+}
+.driver-popover.zapisz-tour .driver-popover-arrow-side-bottom {
+  border-bottom-color: var(--p-surface-0);
+}
+
+/*
+ * Menu wyboru szablonu zmian (overlay PrimeNG p-menu) — dedykowana klasa,
+ * podawana przez `styleClass`, żeby NIE ruszać innych p-menu w aplikacji.
+ * Cel: szerszy, wyraźniejszy overlay z czytelnymi pozycjami; na mobile nie
+ * wychodzi poza ekran (clamp do szerokości viewportu z marginesem).
+ */
+.p-menu.shift-template-menu {
+  min-width: 16rem;
+  max-width: calc(100vw - 2rem);
+  border-radius: 0.875rem;
+  box-shadow:
+    0 10px 25px -5px rgba(0, 0, 0, 0.18),
+    0 8px 10px -6px rgba(0, 0, 0, 0.12);
+}
+
+.p-menu.shift-template-menu .p-menu-list {
+  padding: 0.375rem;
+}
+
+.p-menu.shift-template-menu .p-menu-item-link {
+  border-radius: 0.625rem;
+  padding-block: 0.625rem;
+  gap: 0.625rem;
+}
+
+.p-menu.shift-template-menu .p-menu-item-label {
+  font-weight: 600;
+}
+
+/* ── @angular/cdk drag & drop (reorder katalogu usług) ───────────────────────
+   Styl spójny z PrimeNG + Tailwind: uniesiony preview z cieniem, półprzezroczysty
+   placeholder w miejscu docelowym, płynny powrót/animacja sąsiadów po upuszczeniu. */
+.cdk-drag-preview {
+  box-sizing: border-box;
+  border-radius: 1.5rem;
+  box-shadow:
+    0 20px 40px -12px rgba(15, 23, 42, 0.45),
+    0 8px 16px -8px rgba(15, 23, 42, 0.3);
+  opacity: 0.95;
+}
+
+.cdk-drag-placeholder {
+  opacity: 0.4;
+}
+
+.cdk-drag-placeholder > * {
+  visibility: hidden;
+}
+
+.cdk-drag-animating {
+  transition: transform 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+/* Płynny ruch sąsiadów, gdy ciągniemy element nad listą. */
+.cdk-drop-list-dragging .cdk-drag:not(.cdk-drag-placeholder) {
+  transition: transform 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.p-menu.shift-template-menu .p-menu-item-icon {
+  color: var(--p-primary-color);
+}
+/*
+ * Toasty (montaż: <p-toast class="app-toast"> w App).
+ *
+ * PrimeNG wylicza `top`/`right` i wpisuje je INLINE, więc nadpisanie wymaga `!important`.
+ * Szerokość i odsunięcie od krawędzi trzymamy zgodne z paddingiem powłoki aplikacji
+ * (`p-3 sm:p-4` w MainLayout), żeby toast nie odstawał od kart panelu.
+ */
+.app-toast {
+  /* Wyżej niż domyślne 20px — daje oddech od górnej krawędzi ekranu. */
+  top: 1.5rem !important;
+}
+
+/* Desktop/tablet: węższy niż domyślne 25rem, wyrównany do paddingu powłoki (sm:p-4 = 1rem). */
+@media (min-width: 641px) {
+  .app-toast {
+    width: 21rem !important;
+    right: 1rem !important;
+  }
+}
+
+/*
+ * Mobile: pełna szerokość minus padding powłoki (p-3 = 0.75rem z każdej strony).
+ * Nadpisuje regułę `breakpoints` PrimeNG, która rozciągała toast od krawędzi do krawędzi.
+ */
+@media (max-width: 640px) {
+  .app-toast {
+    width: calc(100% - 1.5rem) !important;
+    left: 0.75rem !important;
+    right: 0.75rem !important;
+  }
+}

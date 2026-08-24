@@ -1,0 +1,3 @@
+P:System.DateTime.Now;Użyj DateTime.UtcNow + konwersji do strefy tenanta (AppointmentScheduleGuard).
+P:System.DateTime.Today;Użyj DateOnly.FromDateTime(DateTime.UtcNow) + strefy tenanta.
+P:System.DateTimeOffset.Now;Użyj DateTimeOffset.UtcNow.

@@ -1,0 +1,20 @@
+{
+  "name": "booking-saas-e2e",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Playwright E2E test suite for booking_saas (backend + dashboard + public booking web)",
+  "scripts": {
+    "test": "playwright test",
+    "test:p0": "playwright test --grep @p0",
+    "test:smoke": "playwright test --grep @smoke",
+    "test:ui": "playwright test --ui",
+    "test:headed": "playwright test --headed",
+    "report": "playwright show-report",
+    "install-browsers": "playwright install --with-deps chromium"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0",
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.0"
+  }
+}

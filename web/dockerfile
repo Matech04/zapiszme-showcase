@@ -1,0 +1,24 @@
+# Build Astro (output: static) + serwowanie Caddy
+FROM node:22-alpine AS build
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
+COPY . .
+# Astro inline'uje import.meta.env.PUBLIC_* w trakcie buildu — domyślne wartości to prod URL-e.
+# Override w docker-compose.prod.local.yml: --build-arg PUBLIC_API_BASE_URL=http://api.localhost itd.
+ARG PUBLIC_API_BASE_URL=https://api.zapisz.me
+ARG PUBLIC_DASHBOARD_URL=https://admin.zapisz.me
+ARG PUBLIC_SITE_URL=https://zapisz.me
+ARG PUBLIC_TURNSTILE_SITE_KEY=
+ARG PUBLIC_TURNSTILE_INVISIBLE_SITE_KEY=
+ENV PUBLIC_API_BASE_URL=$PUBLIC_API_BASE_URL \
+    PUBLIC_DASHBOARD_URL=$PUBLIC_DASHBOARD_URL \
+    PUBLIC_SITE_URL=$PUBLIC_SITE_URL \
+    PUBLIC_TURNSTILE_SITE_KEY=$PUBLIC_TURNSTILE_SITE_KEY \
+    PUBLIC_TURNSTILE_INVISIBLE_SITE_KEY=$PUBLIC_TURNSTILE_INVISIBLE_SITE_KEY
+RUN npm run build
+
+FROM caddy:2-alpine
+COPY --from=build /app/dist /srv
+COPY caddyfile /etc/caddy/Caddyfile
+EXPOSE 80

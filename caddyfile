@@ -1,0 +1,187 @@
+# --- OPCJE GLOBALNE ---
+# White-label: TLS On-Demand dla domen klientów. Przed wystawieniem certu Caddy pyta backend,
+# czy host należy do zarejestrowanej domeny (Tenant.CustomDomain) — chroni przed wystawianiem
+# certów dla przypadkowych SNI wskazanych na nasz serwer i wyczerpaniem limitów Let's Encrypt.
+{
+	on_demand_tls {
+		ask http://api:8080/internal/tls-allowed
+	}
+
+	servers {
+		# Zakresy edge Cloudflare. Tylko połączenia STĄD mają prawo dyktować IP klienta.
+		# Odświeżanie: scripts/cf-ip-ranges.sh (źródło: cloudflare.com/ips-v4 + ips-v6).
+		# BEGIN CF-RANGES (generowane — nie edytuj ręcznie)
+		trusted_proxies static 173.245.48.0/20 103.21.244.0/22 103.22.200.0/22 103.31.4.0/22 141.101.64.0/18 108.162.192.0/18 190.93.240.0/20 188.114.96.0/20 197.234.240.0/22 198.41.128.0/17 162.158.0.0/15 104.16.0.0/13 104.24.0.0/14 172.64.0.0/13 131.0.72.0/22 2400:cb00::/32 2606:4700::/32 2803:f800::/32 2405:b500::/32 2405:8100::/32 2a06:98c0::/29 2c0f:f248::/32
+		# END CF-RANGES
+
+		# WYŁĄCZNIE CF-Connecting-IP — nagłówek, który Cloudflare zawsze NADPISUJE.
+		# Świadomie NIE ufamy tu X-Forwarded-For: CF przepuszcza przychodzący XFF i tylko dokleja
+		# do niego adres, więc jego lewy skraj pozostaje pod kontrolą atakującego.
+		# Gdy nagłówka brak (ruch nie przez CF) → {client_ip} = adres peera, czyli zachowanie sprzed
+		# migracji. Gdy peer spoza `trusted_proxies` podeśle podrobiony CF-Connecting-IP → ignorowany.
+		client_ip_headers CF-Connecting-IP
+	}
+}
+
+# Jedno źródło prawdy o IP klienta dla backendu. .NET czyta X-Forwarded-For (ForwardLimit=1,
+# ReverseProxy:TrustedProxies = sieci docker), więc podajemy mu JEDNOELEMENTOWY nagłówek z
+# rozwiązanym {client_ip}. Nadpisanie, nie doklejenie: domyślne `reverse_proxy` DOKLEJA adres
+# peera, co za Cloudflare wstawiłoby na koniec IP edge'a CF — a .NET bierze właśnie ostatni hop.
+# Skutek byłby taki, że wszyscy anonimowi użytkownicy trafiliby do jednego kubełka rate-limitera
+# i jednego capu MaxConcurrentHoldsPerIp.
+(client_ip) {
+	header_up X-Forwarded-For {client_ip}
+}
+
+# --- KANONICZNY HOST ---
+# `www` TYLKO przekierowuje na apex — nigdy nie serwuje aplikacji.
+#
+# Regresja, którą to naprawia: oba hosty serwowały ten sam kalendarz, ale `getBookingApiBase()`
+# (web/src/lib/booking-api-browser.ts) kieruje z obu na https://api.zapisz.me, czyli CROSS-ORIGIN.
+# Na liście Cors:AllowedOrigins było wyłącznie https://zapisz.me, więc wejście przez www kończyło
+# się zablokowaniem KAŻDEJ odpowiedzi API przez przeglądarkę: strona się renderowała, a kalendarz
+# nigdy się nie ładował (w Safari „TypeError: Load failed"). Awaria była praktycznie niewidoczna
+# w logach, bo raport diagnostyczny leci na ten sam cross-originowy host i też był blokowany.
+#
+# Jeden kanoniczny host = ten błąd nie ma jak wrócić. `{uri}` zachowuje ścieżkę i query,
+# więc www.zapisz.me/<slug>?manage=1 ląduje dokładnie tam, gdzie powinno.
+www.zapisz.me {
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		-Server
+	}
+	redir https://zapisz.me{uri} permanent
+}
+
+# --- APLIKACJA ---
+# Nagłówki bezpieczeństwa dodajemy na edge (warstwa kończąca TLS) dla frontów HTML.
+# API (api.zapisz.me) ustawia własne nagłówki w middleware, więc go tu nie ruszamy.
+zapisz.me {
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		# Booking to strona nawigowana wprost. SAMEORIGIN/frame-ancestors 'self' blokuje
+		# cross-origin clickjacking, nie usuwając ewentualnego osadzenia same-origin.
+		X-Frame-Options "SAMEORIGIN"
+		Content-Security-Policy "frame-ancestors 'self'"
+		-Server
+	}
+	# Raport awarii kalendarza — SAME-ORIGIN, celowo. Front wysyła go na ścieżkę względną
+	# (web/src/lib/booking/error-report.ts), żeby zgłoszenie o zepsutym kalendarzu nie jechało
+	# tym samym kanałem cross-origin, który mógł właśnie paść. Bez tej trasy trafiłby w
+	# booking-app (statyczny HTML) i przepadł.
+	handle /api/booking-diagnostics/* {
+		reverse_proxy api:8080 {
+			import client_ip
+		}
+	}
+	# Skrócone linki płatności (zapisz.me/p/{code}) obsługuje backend (302 → Stripe Checkout).
+	# Statyczne Astro nie umie redirectu serwerowego, więc /p/* routujemy na API.
+	handle /p/* {
+		reverse_proxy api:8080 {
+			import client_ip
+		}
+	}
+	handle {
+		reverse_proxy booking-app:80 {
+			import client_ip
+		}
+	}
+}
+
+admin.zapisz.me {
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		# Panel nigdy nie jest osadzany — twardy DENY.
+		X-Frame-Options "DENY"
+		Content-Security-Policy "frame-ancestors 'none'"
+		-Server
+	}
+	reverse_proxy admin-panel:80 {
+		import client_ip
+	}
+}
+
+api.zapisz.me {
+	# Publicznie wystawiamy WYŁĄCZNIE /health/live (liveness — NIE dotyka bazy) dla
+	# zewnętrznego uptime-monitora (UptimeRobot). Endpoint ma własny rate-limit po stronie
+	# API (polityka "HealthCheck", 30/min/IP).
+	# /health, /health/ready, /health/smoke → 404 z internetu. /health/smoke dotyka bazy
+	# (DoS surface), więc świadomie NIE wychodzi przez Caddy — po deployu weryfikujemy go
+	# WEWNĘTRZNIE przez sieć docker (http://api:8080/health/smoke), patrz scripts/deploy-step.sh.
+	@health_blocked {
+		path /health /health/ready /health/smoke
+	}
+	respond @health_blocked 404
+	# /internal/* (np. tls-allowed dla On-Demand TLS) jest tylko do sieci docker — 404 z internetu.
+	respond /internal/* 404
+	reverse_proxy api:8080 {
+		import client_ip
+	}
+}
+
+# --- WHITE-LABEL: DOMENY KLIENTÓW ---
+# Catch-all dla customowych domen (rezerwacja.<domena> → booking-app, api.<domena> → API).
+# Bloki zapisz.me/admin/api.zapisz.me wyżej mają pierwszeństwo (Caddy dopasowuje najbardziej
+# szczegółowy host), więc tu trafiają wyłącznie domeny klientów. TLS On-Demand autoryzowany
+# przez `ask` (opcje globalne). Routing jest GENERYCZNY — kolejny klient = wpis Tenant.CustomDomain
+# + DNS, bez zmian w Caddy.
+https:// {
+	tls {
+		on_demand
+	}
+
+	# API klienta (api.<domena>) — backend ustawia własne nagłówki; /internal niedostępne publicznie.
+	@api expression `{http.request.host}.startsWith("api.")`
+	handle @api {
+		respond /internal/* 404
+		reverse_proxy api:8080 {
+			import client_ip
+		}
+	}
+
+	# Raport awarii kalendarza — same-origin, jak na zapisz.me. Na white-labelu SPA stoi pod
+	# rezerwacja.<domena>, a API pod api.<domena>, więc bez tej trasy beacon byłby cross-origin
+	# i padał razem z awarią, o której miał donieść.
+	handle /api/booking-diagnostics/* {
+		reverse_proxy api:8080 {
+			import client_ip
+		}
+	}
+	# Skrócone linki zadatku na domenie klienta (rezerwacja.<domena>/p/{code}) — jak na zapisz.me,
+	# backend robi 302 → Stripe Checkout. Statyczne Astro nie umie redirectu serwerowego.
+	handle /p/* {
+		reverse_proxy api:8080 {
+			import client_ip
+		}
+	}
+
+	# SPA rezerwacji (rezerwacja.<domena>) — te same nagłówki bezpieczeństwa co booking na zapisz.me.
+	handle {
+		header {
+			Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+			X-Content-Type-Options "nosniff"
+			Referrer-Policy "strict-origin-when-cross-origin"
+			X-Frame-Options "SAMEORIGIN"
+			Content-Security-Policy "frame-ancestors 'self'"
+			-Server
+		}
+		# Root customowej domeny ma serwować SHELL bookingu (BookingEntry rozwiązuje slug z hosta),
+		# a NIE landing zapisz.me (index.html). booking-app serwuje [slug].astro pod /_app/index.html.
+		# Tylko goły root — assety (/_astro/*, /favicon...) i pozostałe ścieżki lecą bez zmian.
+		@root path /
+		rewrite @root /_app/index.html
+		reverse_proxy booking-app:80 {
+			import client_ip
+		}
+	}
+}
+
+# --- MONITORING ---
+# Stack przeniesiony na usługi zewnętrzne (Grafana Cloud Free + UptimeRobot +
+# Umami Cloud). Na serwerze zostają tylko lekkie exportery + agent Alloy, które
+# wypychają metryki na zewnątrz i nie potrzebują publicznych subdomen.
+# Zewnętrzny uptime-monitor uderza w publiczny endpoint api.zapisz.me/health/smoke.

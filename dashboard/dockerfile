@@ -1,0 +1,21 @@
+# ETAP 1: build (Angular, projekt: client-angular → dist/client-angular/browser)
+FROM node:22-alpine AS build
+WORKDIR /app
+COPY package.json package-lock.json ./
+# lockfile + różne wersje @angular/* (np. 21.2.6 vs 21.2.7) — dopóki nie wyrównasz zależności:
+RUN npm ci --legacy-peer-deps
+COPY . .
+# Domyślnie `docker` = environment.production.ts (produkcyjne URL-e, build dla GHCR).
+# Override przez `--build-arg ANGULAR_CONFIG=local-prod` w docker-compose.prod.local.yml
+# żeby trafić w environment.local-prod.ts (apiBaseUrl=http://api.localhost, Turnstile test keys).
+ARG ANGULAR_CONFIG=docker
+RUN npm run build -- --configuration=$ANGULAR_CONFIG
+
+# ETAP 2: Caddy serwujący statyki SPA
+FROM caddy:2-alpine AS final
+# Nazwa katalogu zgodna z "projects" → "client-angular" w angular.json
+COPY --from=build /app/dist/client-angular/browser /srv
+# Plik w repozytorium: caddyfile (wielkość liter jak w repo; Linux = ważne)
+COPY caddyfile /etc/caddy/Caddyfile
+EXPOSE 80
+# Obraz caddy: uruchomienie z /etc/caddy/Caddyfile — domyślny CMD obrazu

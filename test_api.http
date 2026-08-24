@@ -1,0 +1,159 @@
+#salon patryk
+@tenantA = 00000000-0000-0000-0000-000000000001
+#salon krzysiek
+@tenantB = 00000000-0000-0000-0000-000000000002
+@currentTenant = {{tenantA}}
+
+@employeeId = 6c5e2056-ae16-4881-ba6b-2a64ae359bf0
+
+GET http://localhost:5140/api/Tenants
+
+### Pobieranie pracowników
+GET http://localhost:5140/api/Employees
+X-Tenant-Id: {{currentTenant}}
+
+### Pobieranie dostępności pracownika
+GET http://localhost:5140/api/Employees/0dc755be-4279-459a-8c01-5d5e8eec8a9d/availabilities
+X-Tenant-Id: {{currentTenant}}
+
+
+### Dodawanie usługi
+POST http://localhost:5140/api/Services
+Content-Type: application/json
+X-Tenant-Id: {{currentTenant}}
+
+{
+  "Name": "Strzyżenie Damskie",
+  "Price": 65.00,
+  "DurationInMinutes": 45
+}
+
+### Wyświetlnie usług
+
+GET http://localhost:5140/api/Services
+X-Tenant-Id: {{currentTenant}}
+
+###
+DELETE  http://localhost:5140/api/Services/019bc679-c4fd-7f9d-a9b7-df0cadabb667
+X-Tenant-Id: {{currentTenant}}
+
+Poniżej znajdziesz przygotowane requesty w formacie .http (zgodnym z Visual Studio / Rider), które pozwolą Ci przetestować nowo utworzone punkty końcowe.
+
+Warto zauważyć, że w zapytaniu POST nie przesyłamy EmployeeId wewnątrz pliku JSON, ponieważ zgodnie z Twoją implementacją kontrolera, identyfikator ten jest pobierany bezpośrednio z adresu URL.
+
+Testowanie Availability Overrides
+Możesz wkleić poniższy blok do swojego pliku .http, aby szybko sprawdzić działanie systemu:
+
+HTTP
+### 1. Stworzenie nadpisania (Dzień Pracujący z przerwą)
+# Zastąp {employeeId} rzeczywistym ID pobranym z GET /api/Employees
+POST http://localhost:5140/api/employees/{{employeeId}}/availability-overrides
+X-Tenant-Id: {{currentTenant}}
+Content-Type: application/json
+
+{
+  "date": "2026-02-01",
+  "isDayOff": false,
+  "slots": [
+    {
+      "startTime": "08:00:00",
+      "endTime": "12:00:00",
+      "isBreak": false
+    },
+    {
+      "startTime": "12:00:00",
+      "endTime": "12:30:00",
+      "isBreak": true
+    },
+    {
+      "startTime": "12:30:00",
+      "endTime": "16:00:00",
+      "isBreak": false
+    }
+  ]
+}
+
+### 2. Stworzenie nadpisania (Dzień Wolny)
+POST http://localhost:5140/api/employees/{{employeeId}}/availability-overrides
+X-Tenant-Id: {{currentTenant}}
+Content-Type: application/json
+
+{
+  "date": "2026-02-02",
+  "isDayOff": true,
+  "slots": []
+}
+
+### 3. Pobranie wszystkich nadpisań dla pracownika
+GET http://localhost:5140/api/employees/{{employeeId}}/availability-overrides
+X-Tenant-Id: {{currentTenant}}
+
+### Service Categories Tests
+
+### Get all Service Categories
+GET http://localhost:5140/api/ServiceCategories
+X-Tenant-Id: {{currentTenant}}
+
+### Create Service Category
+# @name createCategory
+POST http://localhost:5140/api/ServiceCategories
+X-Tenant-Id: {{currentTenant}}
+Content-Type: application/json
+
+{
+  "name": "Haircuts",
+  "orderIndex": 1
+}
+
+### Get Service Category by ID
+@categoryId = {{createCategory.response.body.$}}
+GET http://localhost:5140/api/ServiceCategories/{{categoryId}}
+X-Tenant-Id: {{currentTenant}}
+
+### Update Service Category
+PUT http://localhost:5140/api/ServiceCategories/{{categoryId}}
+X-Tenant-Id: {{currentTenant}}
+Content-Type: application/json
+
+{
+  "id": "{{categoryId}}",
+  "name": "Haircuts Updated",
+  "orderIndex": 2
+}
+
+### Delete Service Category
+DELETE http://localhost:5140/api/ServiceCategories/{{categoryId}}
+X-Tenant-Id: {{currentTenant}}
+
+### User Tests
+
+### Get all Users
+GET http://localhost:5140/api/Users
+
+### Create User
+# @name createUser
+POST http://localhost:5140/api/Users
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "passwordHash": "hashed_password",
+  "role": "Admin"
+}
+
+### Get User by ID
+@userId = {{createUser.response.body.$}}
+GET http://localhost:5140/api/Users/{{userId}}
+
+### Update User
+PUT http://localhost:5140/api/Users/{{userId}}
+Content-Type: application/json
+
+{
+  "id": "{{userId}}",
+  "email": "updated@example.com",
+  "role": "Employee"
+}
+
+### Delete User
+DELETE http://localhost:5140/api/Users/{{userId}}

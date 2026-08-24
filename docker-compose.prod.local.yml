@@ -1,0 +1,138 @@
+# docker-compose.prod.local.yml — override dla "local prod parity"
+#
+# Używaj WYŁĄCZNIE razem z docker-compose.prod.yml (+ opcjonalnie monitoring.yml).
+# Przykład:
+#   docker compose \
+#     --env-file .env.local \
+#     -f docker-compose.prod.yml \
+#     -f docker-compose.monitoring.yml \
+#     -f docker-compose.prod.local.yml \
+#     up -d --build
+# (najwygodniej: `make prod-local-up`)
+#
+# Co robi:
+# • Builduje API/admin/web z lokalnego źródła zamiast pullowania z GHCR
+# • Kieruje email przez Mailpit (UI pod mail.localhost) zamiast Azure ACS
+# • Wystawia porty 80/443 + 5432 (db) + 5000 (api direct, bypass Caddy)
+# • Persystuje DataProtection i Postgres między restartami (tak jak prod)
+# • Zamiast Caddyfile z prod SSL używa caddyfile.local (HTTP, *.localhost)
+#
+# Sieć saas-network musi istnieć PRZED `up` — Makefile robi to automatycznie.
+
+# Kotwice są lokalne dla pliku — serwisy z base (prod.yml) mają już rotację,
+# ale mailpit jest definiowany tylko tutaj, więc potrzebuje własnej.
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+services:
+  caddy-proxy:
+    volumes:
+      # !reset zerowuje listę z base, potem montujemy lokalny caddyfile zamiast prod
+      - !reset null
+      - ./caddyfile.local:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    # Caddy wystawia self-signed certy przez `tls internal` — domyślne porty 80/443 w base
+    # compose są OK, ale dorzucamy 443/udp dla HTTP/3 i upewniamy się że są wystawione.
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+
+  api:
+    # Build lokalny — to JEST punkt całego setupu. Bez tego iterujesz przez GHCR.
+    image: zapiszme-api:local
+    build:
+      context: ./backend
+      dockerfile: dockerfile
+    # [local-prod] Wyłącz IPv6 w kontenerze — host nie ma trasy IPv6, a glibc rozwiązuje
+    # zewnętrzne hosty (np. fcm.googleapis.com dla Web Push) na AAAA → „Network unreachable".
+    # Bez IPv6 getaddrinfo zwraca A (IPv4) i egress działa. Prod tego nie potrzebuje.
+    sysctls:
+      - net.ipv6.conf.all.disable_ipv6=1
+      - net.ipv6.conf.default.disable_ipv6=1
+    # Drugi env_file — wartości z .env.local NADPISUJĄ te z .env (compose merge order).
+    # Patrz workflow `fetch-local-env.yml` co tam siedzi.
+    env_file:
+      - path: .env.local
+        required: true
+    environment:
+      # LOCAL_PROD rozluźnia ValidateProductionConfiguration (HTTP zamiast HTTPS w
+      # Dashboard:BaseUrl / Cors:AllowedOrigins, pomija walidację ACS gdy EMAIL_SENDER_MODE=Smtp).
+      - LOCAL_PROD=true
+      # UWAGA: REALNA wysyłka SMS (smsapi.pl = pieniądze). TestMode pominięty celowo →
+      # appsettings.json default = false → SMS naprawdę wychodzą. Token z .env.local
+      # (Sms__OAuthToken). Do bezpiecznego smoke bez kosztów: dodaj `- Sms__TestMode=true`.
+      # [local-prod] Tryb testowy SMS — API wstaje bez tokenu smsapi i NIE wysyła realnych SMS
+      # (zero kosztów przy testach lokalnych). Prod jedzie przez docker-compose.prod.yml (bez tej linii).
+      - Sms__TestMode=true
+      # [local-prod] Klucze VAPID Web Push idą z .env.local (env_file wyżej), tak jak Sms__OAuthToken —
+      # klucza prywatnego NIE trzymamy w repo. Ustaw w .env.local (para wygenerowana LOKALNIE, nie prod):
+      #   WebPush__VapidPublicKey=...
+      #   WebPush__VapidPrivateKey=...
+      - WebPush__Subject=mailto:kontakt@zapisz.me
+      # Parytet z prod: BEZ demo seedu. Start tworzy tylko admina z BOOKING_ADMIN_EMAIL/
+      # PASSWORD (.env.local) przez EnsureProductionBootstrapAsync. Demo dane (saloni/
+      # usługi/pracownicy) → dodaj `- ENABLE_DEMO_SEED=1`.
+    ports:
+      - "5000:8080"   # api directly accessible — debugging bez Caddy
+
+  db:
+    ports:
+      # Host-port konfigurowalny; DOMYŚLNIE 5434, żeby NIE kolidować z dev-stackiem na 5432
+      # (worktree-sync.sh wpisuje dev connection na Port=5432). Wewnątrz sieci compose API i tak
+      # łączy się przez `db:5432`, więc zmiana host-portu nie rusza działania stosu.
+      # Override: PROD_LOCAL_DB_PORT w .env.local. psql z hosta: `psql -h localhost -p 5434 -U admin saas_db`
+      - "${PROD_LOCAL_DB_PORT:-5434}:5432"
+    # Używamy OSOBNEGO volume dla local-prod, żeby nie kolidować z wolumenem dev-stacka
+    # (`docker-compose.dev.yml` używa `postgres:alpine` z tym samym domyślnym `postgres_data`,
+    # co prowadzi do "directory exists but not empty" + potencjalnego mismatcha wersji).
+    volumes:
+      - !reset null
+      - postgres_data_localprod:/var/lib/postgresql/data
+
+  # MAILPIT — łapie cały SMTP, nic nie wysyła na świat. UI pod http://mail.localhost
+  mailpit:
+    image: axllent/mailpit:latest
+    restart: unless-stopped
+    logging: *default-logging
+    environment:
+      - MP_MAX_MESSAGES=5000
+      - MP_DATABASE=/data/mailpit.db
+      - MP_SMTP_AUTH_ACCEPT_ANY=true
+      - MP_SMTP_AUTH_ALLOW_INSECURE=true
+    volumes:
+      - mailpit_data:/data
+    networks:
+      - saas-network
+
+  # Frontendy też z lokalnego buildu — jeśli iterujesz tylko po API, zakomentuj te dwa
+  # bloki i compose zaciągnie obrazy GHCR z `latest` (szybciej, ale mniej "real test").
+  admin-panel:
+    image: zapiszme-dashboard:local
+    build:
+      context: ./dashboard
+      dockerfile: dockerfile
+      args:
+        # environment.local-prod.ts → apiBaseUrl=http://api.localhost + Turnstile test keys
+        ANGULAR_CONFIG: local-prod
+
+  booking-app:
+    image: zapiszme-web:local
+    build:
+      context: ./web
+      dockerfile: dockerfile
+      args:
+        PUBLIC_API_BASE_URL: https://api.localhost
+        PUBLIC_DASHBOARD_URL: https://admin.localhost
+        PUBLIC_SITE_URL: https://localhost
+        # Cloudflare publiczne TEST keys — zawsze pass, ale tylko z origin localhost.
+        PUBLIC_TURNSTILE_SITE_KEY: 1x00000000000000000000AA
+        PUBLIC_TURNSTILE_INVISIBLE_SITE_KEY: 1x00000000000000000000BB
+
+volumes:
+  mailpit_data:
+  postgres_data_localprod:

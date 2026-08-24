@@ -1,0 +1,15 @@
+---
+// Ustawia klasę `.dark` na <html> przed pierwszym malowaniem (brak migotania).
+// Źródło: zapis w localStorage, a w razie braku — preferencja systemu.
+---
+<script is:inline>
+  (() => {
+    try {
+      const t = localStorage.getItem("theme");
+      const dark =
+        t === "dark" ||
+        (!t && window.matchMedia("(prefers-color-scheme: dark)").matches);
+      document.documentElement.classList.toggle("dark", dark);
+    } catch (_) {}
+  })();
+</script>

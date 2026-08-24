@@ -1,0 +1,24 @@
+# Zależności (najważniejsze!)
+node_modules/
+
+# Lokalne buildy
+dist/
+
+# Cache i pliki tymczasowe Astro
+.astro/
+
+# Systemy kontroli wersji
+.git/
+.gitignore
+
+# Ustawienia edytorów kodu
+.vscode/
+.idea/
+
+# Logi błędów
+npm-debug.log
+yarn-error.log
+*.log
+
+# Ewentualne lokalne pliki konfiguracyjne ze zmiennymi
+.env.local

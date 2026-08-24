@@ -1,0 +1,143 @@
+# caddyfile.local — routing dla local-prod (docker-compose.prod.local.yml).
+#
+# HTTPS przez self-signed cert (Caddy `tls internal`) — wymagane bo Production-mode
+# ASP.NET używa SameSite=None+Secure dla cross-origin (admin→api), co bez HTTPS w ogóle
+# nie ustawia cookies (CSRF/Identity). HTTPS sprawia że local-prod = prod 1:1.
+#
+# Subdomeny *.localhost rozwiązują się na 127.0.0.1 bez touch'owania /etc/hosts (RFC 6761).
+#
+# PIERWSZY RAZ: przeglądarka pokaże "Twoje połączenie nie jest prywatne" — kliknij
+# "Zaawansowane" → "Przejdź do localhost (niebezpieczne)". Akceptujesz osobno na każdą
+# subdomenę (admin/api/mail). Cert Caddy ważny ~12h dla internal CA, sam się rotuje.
+#
+#   https://localhost              — booking-app
+#   https://admin.localhost        — panel admina
+#   https://api.localhost          — API .NET (też http://localhost:5000 direct, bypass Caddy)
+#   https://mail.localhost         — Mailpit
+#
+# Monitoring (Grafana/Seq/Uptime/Umami) → usługi zewnętrzne, brak lokalnych subdomen.
+{
+	# local_certs mówi Caddy żeby NIE próbował ACME (Let's Encrypt) na *.localhost,
+	# tylko wystawił self-signed przez wewnętrzną CA. Admin endpoint wyłączony.
+	local_certs
+	admin off
+
+	servers {
+		# Lustro prod (`caddyfile`), ale zaufane są sieci prywatne zamiast zakresów Cloudflare —
+		# lokalnie „edge CF" udajemy curl-em z hosta (peer = brama docker / loopback).
+		# Dzięki temu da się przeklikać zachowanie sprzed i po migracji bez dotykania produkcji:
+		#   curl -k https://api.localhost/... -H 'CF-Connecting-IP: 203.0.113.5'  → API widzi 203.0.113.5
+		#   curl -k https://api.localhost/...                                     → API widzi IP peera
+		trusted_proxies static private_ranges
+		client_ip_headers CF-Connecting-IP
+	}
+}
+
+# Jak w prod: backend dostaje JEDNOELEMENTOWY X-Forwarded-For z rozwiązanym {client_ip}.
+(client_ip) {
+	header_up X-Forwarded-For {client_ip}
+}
+
+# --- KANONICZNY HOST ---
+# Lustrzane do prod (caddyfile): `www` tylko przekierowuje, nigdy nie serwuje aplikacji.
+# Parytet jest tu celowy — na dwóch hostach serwujących kalendarz cross-originowe wywołania
+# API z `www` wpadały poza Cors:AllowedOrigins i kalendarz w ogóle się nie ładował.
+www.localhost {
+	tls internal
+	redir https://localhost{uri} permanent
+}
+
+# --- APLIKACJA ---
+localhost {
+	tls internal
+	# Raport awarii kalendarza — same-origin, lustrzane do prod (caddyfile). Bez tej trasy
+	# beacon trafiłby w booking-app (statyczny HTML) i lokalnie nie dałoby się sprawdzić,
+	# czy zgłoszenia w ogóle dochodzą.
+	handle /api/booking-diagnostics/* {
+		reverse_proxy api:8080 {
+			import client_ip
+		}
+	}
+	# Skrócone linki płatności (localhost/p/{code}) → backend (302 → Stripe Checkout).
+	handle /p/* {
+		reverse_proxy api:8080 {
+			import client_ip
+		}
+	}
+	handle {
+		reverse_proxy booking-app:80 {
+			import client_ip
+		}
+	}
+}
+
+admin.localhost {
+	tls internal
+	reverse_proxy admin-panel:80 {
+		import client_ip
+	}
+}
+
+api.localhost {
+	tls internal
+	# Lustrzane do prod (caddyfile): publiczny tylko /health/live, smoke/ready/root → 404.
+	@health_blocked {
+		path /health /health/ready /health/smoke
+	}
+	respond @health_blocked 404
+	reverse_proxy api:8080 {
+		import client_ip
+	}
+}
+
+# --- WHITE-LABEL (lokalny test „customowej domeny") ---
+# Udawana domena klienta na *.localhost (RFC 6761 → 127.0.0.1) z self-signed CA (tls internal),
+# bo Let's Encrypt / On-Demand TLS nie zadziała na nieistniejącej domenie. To LUSTRO bloku domen
+# klientów z prod `caddyfile` (catch-all https:// + on_demand) — pozwala przeklikać zadatki i
+# booking na „custom domenie" lokalnie.
+#
+# UŻYCIE:
+#   1. Ustaw na lokalnym salonie: Tenant.CustomDomain = "testsalon.localhost"
+#      (przez panel admina „Domena", albo SQL — potem restart api / refresh rejestru, żeby
+#       dynamiczny CORS wpuścił origin rezerwacja/api.testsalon.localhost).
+#   2. Wygeneruj zadatek → link = https://rezerwacja.testsalon.localhost/p/{code}
+#      → Caddy 302 → Stripe (test) → powrót na .../platnosc/sukces → poll do api.testsalon.localhost.
+#
+#   https://rezerwacja.testsalon.localhost — SPA bookingu klienta (+ /p/* → API)
+#   https://api.testsalon.localhost        — API klienta (same-origin dla bookingu/zadatku)
+rezerwacja.testsalon.localhost {
+	tls internal
+	# /p/{code} → backend (302 → Stripe Checkout), jak na zapisz.me i realnych domenach klientów.
+	handle /p/* {
+		reverse_proxy api:8080 {
+			import client_ip
+		}
+	}
+	handle {
+		# Root serwuje SHELL bookingu ([slug].astro); BookingEntry rozwiązuje slug z hosta.
+		@root path /
+		rewrite @root /_app/index.html
+		reverse_proxy booking-app:80 {
+			import client_ip
+		}
+	}
+}
+
+api.testsalon.localhost {
+	tls internal
+	respond /internal/* 404
+	reverse_proxy api:8080 {
+		import client_ip
+	}
+}
+
+# --- MAILE (dev) ---
+mail.localhost {
+	tls internal
+	reverse_proxy mailpit:8025 {
+		import client_ip
+	}
+}
+
+# Monitoring (Grafana/Seq/Uptime/Umami) przeniesiony na usługi zewnętrzne —
+# na boxie zostają tylko lekkie exportery + Alloy (bez publicznych subdomen).

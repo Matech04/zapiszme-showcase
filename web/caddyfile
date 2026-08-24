@@ -1,0 +1,51 @@
+# Statyczne pliki z `astro build` w /srv (główna strona + katalog /_app).
+# Dla / zwracany jest zwykły index; dla trasy, która nie odpowiada plikowi
+# (np. /mój-salon), odpowiednik SPA: ta sama strona z /_app/.
+#
+# try_files w catch-all: próbuje ścieżkę dosłownie, potem {path}/index.html
+# (strony Astro budują się jako katalogi), a dopiero fallback to /_app.
+# Bez tego /demo-kalendarz, /regulamin, /polityka-prywatnosci lądowały
+# w SPA catch-all zamiast własnej strony (Caddy `file` matcher nie matchuje katalogów).
+#
+# CACHE-CONTROL (regresja: klienci utykali na starym buildzie → stary kod wołał złe
+# origin/endpoint API → „Load failed"; UI wyglądało jak starsza wersja):
+#   - /_astro/* mają hash w nazwie (BookingEntry.<hash>.js) → treść nigdy się nie zmienia
+#     pod tą samą nazwą, więc cache „immutable" na rok jest bezpieczny.
+#   - Shell'e HTML (index.html, /_app/index.html, strony) NIE mają hasha → jeśli je cache'ować,
+#     przeglądarka po redeployu serwuje stary shell wskazujący na nieistniejące chunki albo
+#     odpala stary kod. Dlatego `no-cache`: klient MUSI rewalidować (ETag → tanie 304),
+#     więc zawsze dostaje aktualny build zaraz po deployu.
+
+:80 {
+	root * /srv
+	encode gzip zstd
+
+	# Zahashowane assety Astro — pierwsze, żeby wygrały z @file poniżej.
+	@hashed path /_astro/*
+	handle @hashed {
+		header Cache-Control "public, max-age=31536000, immutable"
+		file_server
+	}
+
+	@root path /
+	handle @root {
+		header Cache-Control "no-cache"
+		file_server
+	}
+
+	@file file
+	handle @file {
+		# Istniejące pliki niehashowane (index.html stron, favicony, obrazy, wideo) — rewaliduj,
+		# żeby zmiana HTML/assetu bez hasha też propagowała się natychmiast.
+		header Cache-Control "no-cache"
+		file_server
+	}
+
+	handle {
+		# Trasy SPA (slug salonu, „zarządzaj wizytą") → shell /_app/index.html; nigdy nie cache'uj.
+		header Cache-Control "no-cache"
+		root * /srv
+		try_files {path} {path}/index.html /_app/index.html
+		file_server
+	}
+}
