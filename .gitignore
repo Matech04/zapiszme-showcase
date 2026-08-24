@@ -88,3 +88,7 @@ Thumbs.db
 *.env
 *.key
 *.pem
+
+# Cache buildów frontendów (generowane lokalnie, nigdy do repo)
+.angular/
+.astro/

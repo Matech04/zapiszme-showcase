@@ -52,7 +52,8 @@ Scale, for context:
 |---|---|
 | C# source files | ~1 000 |
 | Lines of C# | ~233 000 |
-| Automated tests | ~1 570 |
+| Backend tests | 1 852 (domain, application, API integration) |
+| Frontend tests | 1 015 (Angular 797 · Svelte/Astro 218) |
 | Backend projects | 5 source + 3 test |
 
 > **A note on history.** This is a squashed snapshot of a private production
